@@ -164,7 +164,7 @@ while ($arr = mysql_fetch_assoc($res)) {
 	print("<div id=\"relgroups\" class=\"relgroups_table\">
 			<div id=\"relgroups_image\" class=\"relgroups_image\"><a href=\"{$REL_SEO->make_link('userdetails','id',$arr['friend'],'username',$arr['username'])}\">");
 	if($arr["avatar"]){
-		print("<img id=\"photo\" style=\"border:none;\" title=".  $arr["username"]." border=\"0\" src=".$arr["avatar"].">");
+		print("<img id=\"photo\" style=\"border:none;max-width:100px;\" title=".  $arr["username"]." border=\"0\" src=".$arr["avatar"].">");
 	}else{
 		print("<img id=\"photo\" style=\"border:none;\" title=".  $arr["username"]." border=\"0\" src=\"/pic/default_avatar.gif\">");
 	}
