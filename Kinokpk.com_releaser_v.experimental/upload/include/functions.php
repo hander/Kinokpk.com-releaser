@@ -355,7 +355,7 @@ plugins : \'style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inser
    force_br_newlines : true,
    force_p_newlines : false,
    theme : "advanced",
-	content_css : "/themes/'.$REL_CONFIG['ss_uri'].'/'.$REL_CONFIG['ss_uri'].'.css",
+	/* content_css : "/themes/'.$REL_CONFIG['ss_uri'].'/'.$REL_CONFIG['ss_uri'].'.css", */
     language: "'.$lang.'",
     	mode : "exact",
 	elements : "rel_wysiwyg",
