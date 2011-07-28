@@ -48,7 +48,7 @@ function ajaxpager($perpage=25,$count,$hrefarray,$el_id,$timeout=500) {
 		$.get(page, '', function(newitems){
 			$('#$el_id').append(newitems);
 			$('#pager_button').removeAttr('disabled');
-			$('#pager_button').val('{$REL_LANG->_('Show more')}');
+			$('#pager_button').val('{$REL_LANG->say_by_key('Show more')}');
 		});
 	}
 </script>");
