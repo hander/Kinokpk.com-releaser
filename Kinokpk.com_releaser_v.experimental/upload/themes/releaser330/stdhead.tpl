@@ -7,7 +7,7 @@
 <base href="{$REL_CONFIG.defaultbaseurl}/" />
 <!--Тоже любишь смотреть исходники HTML? Знаешь еще и PHP/MySQL? обратись к админам, наверняка для тебя есть местечко в нашей команде http://www.kinokpk.com/staff.php -->
 <title>{$title}</title>
-<link rel="stylesheet" href="themes/{$REL_CONFIG.ss_uri}/main.css" type="text/css"/>
+<link rel="stylesheet" href="themes/{$REL_CONFIG.ss_uri}/{$REL_CONFIG.ss_uri}.css" type="text/css"/>
 <link rel="stylesheet" href="css/features.css" type="text/css"/>
 <link rel="stylesheet" href="css/jquery.jgrowl.css" type="text/css"/>
 <link rel="stylesheet" href="css/jquery.facebox.css" type="text/css"/>

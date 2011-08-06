@@ -69,10 +69,14 @@ list($name,$nofr) = @mysql_fetch_array(sql_query("SELECT name,filename FROM torr
 if ($nofr == 'nofile') die ("Блядь ну хули смотреть? Это не торрент релиз! Данных о торренте нет! <a href='".$REL_SEO->make_link('details','id',$id,'name',translit($name))."'>К описанию релиза</a>");
 elseif (!$nofr) 	stderr($REL_LANG->say_by_key('error'),$REL_LANG->say_by_key('invalid_id'));
 
+$query = sql_query("SELECT value FROM xbt_config where name in ('redirect_url')");
+$track = "http://".mysql_result($query,0);
+$track = ($track=="*"?$REL_CONFIG['defaultbaseurl']:$track);
+
 $nof = sql_query("SELECT tracker,lastchecked,state,method,remote_method,seeders,leechers,num_failed FROM trackers WHERE torrent = $id ORDER by lastchecked DESC");
 while (list($tracker,$lastchecked,$state,$method,$remote_method,$seeders,$leechers,$num_failed) = mysql_fetch_array($nof)) {
 	if ($tracker=='localhost') {
-		$data[$i]['tracker'] = $REL_CONFIG['defaultbaseurl'];
+		$data[$i]['tracker'] = $track;
 		$data[$i]['state'] = 'ok';
 		$data[$i]['method'] = 'local';
 		$data[$i]['remote_method'] = 'N/A';
