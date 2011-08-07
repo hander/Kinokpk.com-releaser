@@ -195,6 +195,15 @@ $REL_DB->query("UPDATE users SET warned=0, warneduntil = 0, modcomment = CONCAT(
  }
  }
  */
+ 
+//CleanUp 'xbt_announce_log' and 'xbt_files_users'
+$m_time = $time - 900;
+echo $m_time;
+$REL_DB->query("DELETE FROM xbt_announce_log WHERE mtime < $m_time");
+$REL_DB->query("DELETE FROM xbt_files_users WHERE mtime < $m_time");
+//end
+//
+
 // session update moved to include/functions.php
 if ($REL_CRON['delete_votes']) {
 	$secs = $REL_CRON['delete_votes']*60;
