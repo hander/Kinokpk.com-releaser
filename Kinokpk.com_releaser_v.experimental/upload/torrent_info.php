@@ -18,7 +18,7 @@ require_once "include/benc.php";
  * @param int $torrent ID of a torrent
  * @return string HTML code of a table
  */
-function dltable($name, $arr, $torrent)
+function dltable($name, $arr, $torrent, $id)
 {
 
 	global $CURUSER, $REL_LANG, $REL_SEO;
@@ -33,22 +33,30 @@ function dltable($name, $arr, $torrent)
           "<td class=colhead align=right>".$REL_LANG->say_by_key('idle')."</td>" .
           "<td class=colhead align=left>".$REL_LANG->say_by_key('client')."</td></tr>\n";
 	$mod = get_privilege('is_moderator',false);
-	foreach ($arr as $e) {
+			foreach ($arr as $e) {
 		// user/ip/port
 		// check if anyone has this ip
 		$s .= "<tr>\n";
+		$query = sql_query("SELECT ipa,port,peer_id,mtime FROM xbt_announce_log WHERE info_hash = (SELECT info_hash FROM xbt_files WHERE fid=$id) and mtime = (SELECT mtime FROM xbt_files_users WHERE fid = $id AND uid = ".$e['uid'].")") or sqlerr(__FILE__, __LINE__);
+			while($subrow = mysql_fetch_array($query)) {
+				$e["ipa"] = long2ip($subrow["ipa"]);
+				$e["peer_id"] = $subrow["peer_id"];
+				$e["port"] = $subrow["port"];
+				//echo $e["ipa"];
+			}
 		if ($e["username"]) {
-			$user = $a;
-			$user['id'] = $user['userid'];
-		$s .= "<td><a href=\"".make_user_link($user).($mod ? "&nbsp;[<span title=\"{$e["ip"]}\" style=\"cursor: pointer\">IP</span>]" : "")."</td>\n";
+			$user = $e;
+			$user['id'] = $user['uid'];
+		$s .= "<td>".make_user_link($user).($mod ? "&nbsp;[<span title=\"{$e["ipa"]}:{$e["port"]}\" style=\"cursor: pointer\">IP</span>]" : "")."</td>\n";
 		}
 		else
-		$s .= "<td>" . ($mod ? $e["ip"] : preg_replace('/\.\d+$/', ".xxx", $e["ip"])) . "</td>\n";
-		$s .='<td nowrap>'.ratearea($e['ratingsum'],$e['userid'],'users',$CURUSER['id']).'</td>';
-		$s .="<td>".($e['seeder']?$REL_LANG->say_by_key('yes'):$REL_LANG->say_by_key('no'))."</td>";
+		$s .= "<td>" . ($mod ? long2ip($e["ipa"]) : preg_replace('/\.\d+$/', ".xxx", long2ip($e["ipa"]))) . "</td>\n";
+		$s .='<td nowrap>'.ratearea($e['ratingsum'],$e['uid'],'users',$CURUSER['id']).'</td>';
+		$s .="<td>".($e['left']=='0'?$REL_LANG->say_by_key('yes'):$REL_LANG->say_by_key('no'))."</td>";
 		$s .= "<td align=\"right\">" . get_elapsed_time($e["la"]) . "</td>\n";
 		$s .= "<td align=\"left\">" . substr($e["peer_id"],0,7) . "</td>\n";
 		$s .= "</tr>\n";
+	// }
 	}
 	$s .= "</table>\n";
 	return $s;
@@ -92,6 +100,7 @@ while (list($tracker,$lastchecked,$state,$method,$remote_method,$seeders,$leeche
 
 	$data[$i]['lastchecked'] = get_elapsed_time($lastchecked)." {$REL_LANG->say_by_key('ago')}";
 	$data[$i]['seeders'] = $seeders;
+	$total_seed = $total_seed + $seeders;
 	$data[$i]['leechers'] = $leechers;
 	$i++;
 }
@@ -354,16 +363,19 @@ compactMenu('colapse',false,'');
 elseif (isset($_GET['dllist'])) {
 	$downloaders = array();
 	$seeders = array();
-	$subres = sql_query("SELECT seeder, peers.ip, port, peer_id, peers.last_action AS la, peers.userid, users.username, users.ratingsum, users.class, users.donor, users.warned, users.enabled FROM peers INNER JOIN users ON peers.userid = users.id WHERE peers.torrent = $id") or sqlerr(__FILE__, __LINE__);
+	
+	//$subres = sql_query("SELECT seeder, peers.ip, port, peer_id, peers.last_action AS la, peers.userid, users.username, users.ratingsum, users.class, users.donor, users.warned, users.enabled FROM peers INNER JOIN users ON peers.userid = users.id WHERE peers.torrent = $id") or sqlerr(__FILE__, __LINE__);
+	$subres = sql_query("SELECT active, xbt_files_users.left, mtime AS la, users.ratingsum, xbt_files_users.uid, users.username FROM xbt_files_users INNER JOIN users ON xbt_files_users.uid = users.id  WHERE xbt_files_users.fid = $id") or sqlerr(__FILE__, __LINE__);
 	while ($subrow = mysql_fetch_array($subres)) {
-		if ($subrow["seeder"])
+		if ($subrow["active"] && $subrow["left"]=='0')
 		$seeders[] = $subrow;
 		else
 		$downloaders[] = $subrow;
-	}
+	} 
+
 	print '<table>';
-	tr("<div id=\"seeders\"></div>".$REL_LANG->say_by_key('details_seeding'), dltable($REL_LANG->say_by_key('details_seeding'), $seeders, $row), 1);
-	tr("<div id=\"leechers\"></div>".$REL_LANG->say_by_key('details_leeching'), dltable($REL_LANG->say_by_key('details_leeching'), $downloaders, $row), 1);
+	tr("<div id=\"seeders\">".$REL_LANG->say_by_key('details_seeding')."</div>", dltable($REL_LANG->say_by_key('details_seeding'), $seeders, $row, $id), 1);
+	tr("<div id=\"leechers\">".$REL_LANG->say_by_key('details_leeching')."</div>", dltable($REL_LANG->say_by_key('details_leeching'), $downloaders, $row, $id), 1);
 	print '</table>';
 }
 $REL_TPL->stdfoot();
