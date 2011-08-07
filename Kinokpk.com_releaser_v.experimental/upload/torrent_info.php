@@ -367,11 +367,13 @@ elseif (isset($_GET['dllist'])) {
 	//$subres = sql_query("SELECT seeder, peers.ip, port, peer_id, peers.last_action AS la, peers.userid, users.username, users.ratingsum, users.class, users.donor, users.warned, users.enabled FROM peers INNER JOIN users ON peers.userid = users.id WHERE peers.torrent = $id") or sqlerr(__FILE__, __LINE__);
 	$subres = sql_query("SELECT active, xbt_files_users.left, mtime AS la, users.ratingsum, xbt_files_users.uid, users.username FROM xbt_files_users INNER JOIN users ON xbt_files_users.uid = users.id  WHERE xbt_files_users.fid = $id") or sqlerr(__FILE__, __LINE__);
 	while ($subrow = mysql_fetch_array($subres)) {
-		if ($subrow["active"] && $subrow["left"]=='0')
-		$seeders[] = $subrow;
-		else
-		$downloaders[] = $subrow;
-	} 
+		if ($subrow["active"]) {
+		    if($subrow["left"]=='0')
+			$seeders[] = $subrow;
+		    else
+			$downloaders[] = $subrow;
+		}
+	}
 
 	print '<table>';
 	tr("<div id=\"seeders\">".$REL_LANG->say_by_key('details_seeding')."</div>", dltable($REL_LANG->say_by_key('details_seeding'), $seeders, $row, $id), 1);
