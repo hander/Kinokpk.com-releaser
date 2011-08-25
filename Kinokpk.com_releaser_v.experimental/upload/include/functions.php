@@ -36,7 +36,7 @@ function ajaxpager($perpage=25,$count,$hrefarray,$el_id,$timeout=500) {
 	var MAX_PAGE = $maxpage;
 	var PAGER_HREF = \"$href\";
 	$('document').ready(function(){
-	$('#pager_scrollbox').after('<div align=\"center\"><input type=\"button\" id=\"pager_button\" value=\"{$REL_LANG->say_by_key('show_more')}\" onclick=\"javascript:do_pager();\"/></div>');
+	$('#pager_scrollbox').after('<div align=\"center\"><input type=\"button\" id=\"pager_button\" value=\"{$REL_LANG->say_by_key('Show more')}\" onclick=\"javascript:do_pager();\"/></div>');
 });
 	function do_pager() {
 	if (CURR_PAGE>=MAX_PAGE) { $('#pager_button').val('{$REL_LANG->_('This is an end')}'); $('#pager_button').attr('disabled','disabled'); return false; }
@@ -52,61 +52,12 @@ function ajaxpager($perpage=25,$count,$hrefarray,$el_id,$timeout=500) {
 		});
 	}
 </script>");
-/*	$REL_TPL->assign("AJAXPAGER", "
-	<style type=\"text/css\">
-	#pager_scrollbox{ width:100%; height:500px;  overflow:auto; overflow-x:hidden; border:1px solid #f2f2f2; }
-	</style>
-	<script type=\"text/javascript\">
-	var IN_SCROLL = false;
-	var CURR_PAGE = 0;
-	var MAX_PAGE = $maxpage;
-	var PAGER_HREF = \"$href\";
-	$('document').ready(function(){
 
-	scrollalert();
-});
-	function scrollalert(){
-	if (CURR_PAGE>=MAX_PAGE) return false;
-	var scrolltop=$('#pager_scrollbox').attr('scrollTop');
-	var scrollheight=$('#pager_scrollbox').attr('scrollHeight');
-	var windowheight=$('#pager_scrollbox').attr('clientHeight');
-	var scrolloffset=20;
-	if(scrolltop>=(scrollheight-(windowheight+scrolloffset))&&!IN_SCROLL)
-	{
-		$.facebox('{$REL_LANG->_('Loading')}');
-		IN_SCROLL = true;
-		CURR_PAGE=CURR_PAGE+1;
-		page = PAGER_HREF.replace(/%number%/i,CURR_PAGE);
-
-		$.get(page, '', function(newitems){
-
-			$('#$el_id').append(newitems);
-			IN_SCROLL = false;
-			$.facebox.close();
-		});
-	}
-	setTimeout('scrollalert();', $timeout);
-}
-</script>");*/
-	
 	return "LIMIT $perpage";
 	} else {
 		return "LIMIT ".($page*$perpage).",$perpage";
 	}
 }
-
-$zodiac[] = array("Козерог", "capricorn.gif", "22-12");
-$zodiac[] = array("Стрелец", "sagittarius.gif", "23-11");
-$zodiac[] = array("Скорпион", "scorpio.gif", "24-10");
-$zodiac[] = array("Весы", "libra.gif", "24-09");
-$zodiac[] = array("Дева", "virgo.gif", "24-08");
-$zodiac[] = array("Лев", "leo.gif", "23-07");
-$zodiac[] = array("Рак", "cancer.gif", "22-06");
-$zodiac[] = array("Близнецы", "gemini.gif", "22-05");
-$zodiac[] = array("Телец", "taurus.gif", "21-04");
-$zodiac[] = array("Овен", "aries.gif", "22-03");
-$zodiac[] = array("Рыбы", "pisces.gif", "21-02");
-$zodiac[] = array("Водолей", "aquarius.gif", "21-01");
 
 /**
  * Checks username
@@ -134,7 +85,7 @@ function validusername($username)
  * @param int $selected id of selected timezone
  * @return string code of input=select
  */
-function list_timezones($name = 'timezone',$selected = 3) {
+function list_timezones($name = 'timezone',$selected = 14) {
 	$selected = $selected--;
 	$timezones = explode("\n",'Eniwetok (GMT-12)
 Samoa (GMT-11)
@@ -150,7 +101,7 @@ Mid-Atlantic (GMT-2)
 Azores (GMT-1)
 Greenwich Mean Time (GMT)
 Rome (GMT +1)
-Israel (GMT +2)
+Kiev (GMT +2)
 Moscow (GMT +3)
 Baghdad, Iraq (GMT +4)
 New Delhi (GMT +5)
@@ -301,7 +252,7 @@ function httpauth(){
 	if (($CURUSER['passhash'] != md5($CURUSER['secret'].$_SERVER["PHP_AUTH_PW"].$CURUSER['secret'])) || (($_SERVER['PHP_AUTH_USER']<>$CURUSER['email']) && ($_SERVER['PHP_AUTH_USER']<>$CURUSER['username']))) {
 		if ($_SERVER["PHP_AUTH_PW"]) write_log(make_user_link()." at ".getip().", login/e-mail: {$_SERVER['PHP_AUTH_USER']} <font color=\"red\">ADMIN CONTROL PANEL Authentication FAILED</font>",'admincp_auth');
 
-		header("WWW-Authenticate: Basic realm=\"Kinokpk.com releaser's admininsration panel. You can use email or username to login.\"");
+		header("WWW-Authenticate: Basic realm=\"home.ddns.mobi releaser's admininsration panel. You can use email or username to login. All inputs are case-sensitive\"");
 		header("HTTP/1.0 401 Unauthorized");
 		stderr($REL_LANG->say_by_key('error'),$REL_LANG->say_by_key('access_denied'),'error');
 
@@ -337,6 +288,7 @@ tinyMCE_GZ.init({
         \'searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,spoiler,graffiti,reltemplates\',
 	themes : \'advanced\',
 	languages : \'ru, en\',
+	skin_variant : \'black\',
 	disk_cache : true,
 	gecko_spellcheck:"1",
 	debug : false
@@ -344,7 +296,7 @@ tinyMCE_GZ.init({
        forced_root_block : false,
    force_br_newlines : true,
    force_p_newlines : false,
-		theme : "advanced",
+	theme : "advanced",
 plugins : \'style,layer,table,save,advhr,advimage,advlink,emotions,iespell,insertdatetime,preview,media,stamps,kinopoisk,\'+
         \'searchreplace,'./*contextmenu,*/'print,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,spoiler,reltemplates,graffiti\',
 	languages : \''.$lang.'\',
@@ -355,6 +307,8 @@ plugins : \'style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inser
    force_br_newlines : true,
    force_p_newlines : false,
    theme : "advanced",
+   skin : "o2k7",
+   skin_variant : "black",
 	/* content_css : "/themes/'.$REL_CONFIG['ss_uri'].'/'.$REL_CONFIG['ss_uri'].'.css", */
     language: "'.$lang.'",
     	mode : "exact",
@@ -406,7 +360,7 @@ theme_advanced_buttons4 : "'./*insertlayer,moveforward,movebackward,absolute,|,s
  */
 function textbbcode($name, $content="") {
 
-	return '<textarea id="rel_wysiwyg" class="rel_wysiwyg" name="'.$name.'" cols="100" rows="10">'.$content.'</textarea>'.wysiwyg_init();
+	return '<textarea id="rel_wysiwyg" class="rel_wysiwyg" name="'.$name.'" cols="80" rows="10">'.$content.'</textarea>'.wysiwyg_init();
 }
 
 /**
@@ -437,7 +391,7 @@ function make_user_link($data=false) {
  * @return void
  */
 function delete_user($id) {
-	global $CURUSER, $REL_SEO;
+	global $CURUSER, $REL_SEO, $REL_DB;
 	sql_query("DELETE FROM users WHERE id = $id");
 	sql_query("DELETE FROM comments WHERE toid=$id AND type='user'") or sqlerr(__FILE__, __LINE__);
 	sql_query("DELETE FROM notifs WHERE type='usercomments' AND checkid=$id") or sqlerr(__FILE__, __LINE__);
@@ -446,10 +400,12 @@ function delete_user($id) {
 	sql_query("DELETE FROM friends WHERE friendid = $id") or sqlerr(__FILE__,__LINE__);
 	sql_query("DELETE FROM bookmarks WHERE userid = $id") or sqlerr(__FILE__,__LINE__);
 	sql_query("DELETE FROM invites WHERE inviter = $id") or sqlerr(__FILE__,__LINE__);
-	sql_query("DELETE FROM peers WHERE userid = $id") or sqlerr(__FILE__,__LINE__);
+	sql_query("DELETE FROM xbt_files_users WHERE uid = $id") or sqlerr(__FILE__,__LINE__);
+	sql_query("DELETE FROM xbt_files WHERE uid = $id") or sqlerr(__FILE__,__LINE__);
 	sql_query("DELETE FROM presents WHERE presenter = $id OR userid = $id") or sqlerr(__FILE__,__LINE__);
 	sql_query("DELETE FROM addedrequests WHERE userid = $id") or sqlerr(__FILE__,__LINE__);
 	sql_query("DELETE FROM notifs WHERE userid = $id") or sqlerr(__FILE__,__LINE__);
+	sql_query("DELETE FROM xbt_users WHERE uid = $id") or sqlerr(__FILE__,__LINE__);
 	write_log(make_user_link()." <font color=\"red\">deleted user with id $id</font>",'system_functions');
 
 	return;
@@ -464,7 +420,7 @@ function get_row_count($table, $suffix = "")
 {
 	if ($suffix)
 	$suffix = " $suffix";
-	($r = sql_query("SELECT SUM(1) FROM $table$suffix")) or die(mysql_error());
+	($r = sql_query("SELECT SUM(1) FROM $table $suffix")) or die(mysql_error());
 	($a = mysql_fetch_row($r)) or die(mysql_error());
 	return $a[0]?$a[0]:0;
 }
@@ -680,7 +636,7 @@ function get_slr_color($ratio) {
 	if ($ratio < 0.325) return "#330000";
 	if ($ratio < 0.35) return "#220000";
 	if ($ratio < 0.375) return "#110000";
-	return "#000000";
+	return "#838383";
 }
 
 /**
@@ -840,8 +796,7 @@ function INIT($lightmode = false) {
 
 		$REL_CACHE->set('system','config',$REL_CONFIG);
 	}
-	$REL_CONFIG['lang'] = substr(trim((string)$_COOKIE['lang']),0,2);
-	if (!$REL_CONFIG['lang']) $REL_CONFIG['lang'] = $REL_CONFIG['default_language'];
+	$REL_CONFIG['lang'] = getlang();
 	//configcache init end
 	$cronrow = sql_query("SELECT * FROM cron");
 	/* @var array cron array init */
@@ -865,11 +820,21 @@ function INIT($lightmode = false) {
 	 * This is original copyright, please leave it alone. Remember, that the Developers worked hard for weeks, drank ~67 litres of a beer (hoegaarden and baltica 7) and ate more then 15.1 kilogrammes of hamburgers to present this source. Don't be evil (C) Google
 	 * @var constant Copyright of Kinokpk.com releaser
 	 */
-	define ("TBVERSION", ($REL_CONFIG['yourcopy']?str_replace("{datenow}",date("Y"),$REL_CONFIG['yourcopy']).". ":"")."<br />Powered by <a class=\"copyright\" target=\"_blank\" href=\"http://www.kinokpk.com\">Kinokpk.com</a> <a class=\"copyright\" target=\"_blank\" href=\"http://dev.kinokpk.com\">releaser</a> ".RELVERSION." &copy; 2008-".date("Y").".");
+	define ("TBVERSION", ($REL_CONFIG['yourcopy']?str_replace("{datenow}",date("Y"),$REL_CONFIG['yourcopy']).". ":"")."Powered by <a class=\"copyright\" target=\"_blank\" href=\"http://www.kinokpk.com\">Kinokpk.com</a> <a class=\"copyright\" target=\"_blank\" href=\"http://dev.kinokpk.com\">releaser</a> ".RELVERSION." &copy; 2008-".date("Y").".");
 
 	return;
 }
 
+/**
+* Gets current language setting
+* @return string 2-char language code
+*/
+function getlang() {
+    global $REL_CONFIG;
+        $return = substr(trim((string)$_COOKIE['lang']),0,2);
+    if (!$return) $return = $REL_CONFIG['default_language'];
+    return $return;
+}
 /**
  * Logins user
  * @return void
@@ -920,6 +885,7 @@ function userlogin() {
 	if (!$row) {
 		$REL_CONFIG['ss_uri'] = $REL_CONFIG['default_theme'];
 		$REL_LANG = new REL_LANG($REL_CONFIG);
+		make_zodiac_records($REL_LANG);
 		user_session();
 		return;
 	} elseif ((!$row['enabled']) && !defined("IN_CONTACT")) {
@@ -929,6 +895,7 @@ function userlogin() {
 		}
 		$REL_CONFIG['ss_uri'] = $row['uri'];
 		$REL_LANG = new REL_LANG($REL_CONFIG);
+		make_zodiac_records($REL_LANG);
 		headers(true);
 		die($REL_LANG->say_by_key('disabled').$row['dis_reason'].(($row['dis_reason']=='Your rating was too low.')?$REL_LANG->say_by_key('disabled_rating'):'').$REL_LANG->say_by_key('contact_admin'));
 
@@ -943,6 +910,7 @@ function userlogin() {
 		$pscheck = htmlspecialchars(trim((string)$_COOKIE['pass']));
 		write_log(getip()." with cookie ID = $id <font color=\"red\">with passhash ".$pscheck." -> PASSHASH CHECKSUM FAILED!</font>",'security');
 		$REL_LANG = new REL_LANG($REL_CONFIG);
+		make_zodiac_records($REL_LANG);
 		user_session();
 		return;
 	}
@@ -964,16 +932,44 @@ function userlogin() {
 		if (get_class_priority($override)<get_class_priority($row['class']) && $override>=0)
 		$row['class'] = $override;
 	}
+
+	// Array creation
+	$row['notifs'] = explode(',',$row['notifs']);
+	$row['emailnotifs'] = explode(',',$row['emailnotifs']);
+	$row['custom_privileges'] = explode(',',$row['custom_privileges']);
+
 	/* @var array Not full yet array of variables of current user
 	 * @see $REL_TPL->stdhead()
 	 */
 	$GLOBALS["CURUSER"] = $row;
 	$REL_LANG = new REL_LANG($REL_CONFIG);
+	make_zodiac_records($REL_LANG);
 
 	user_session();
 
 	// $_SESSION = $CURUSER;
 
+}
+
+/**
+* Generates zodiac records for current language
+* @param complex $REL_LANG Language object
+*/
+function make_zodiac_records($REL_LANG) {
+    global $zodiac;
+    $zodiac[] = array($REL_LANG->_('Capricorn'), "capricorn.gif", "22-12");
+    $zodiac[] = array($REL_LANG->_('Sagittarius'), "sagittarius.gif", "23-11");
+    $zodiac[] = array($REL_LANG->_('Scorpio'), "scorpio.gif", "24-10");
+    $zodiac[] = array($REL_LANG->_('Libra'), "libra.gif", "24-09");
+    $zodiac[] = array($REL_LANG->_('Virgo'), "virgo.gif", "24-08");
+    $zodiac[] = array($REL_LANG->_('Leo'), "leo.gif", "23-07");
+    $zodiac[] = array($REL_LANG->_('Cancer'), "cancer.gif", "22-06");
+    $zodiac[] = array($REL_LANG->_('Gemini'), "gemini.gif", "22-05");
+    $zodiac[] = array($REL_LANG->_('Taurus'), "taurus.gif", "21-04");
+    $zodiac[] = array($REL_LANG->_('Aries'), "aries.gif", "22-03");
+    $zodiac[] = array($REL_LANG->_('Pisces'), "pisces.gif", "21-02");
+    $zodiac[] = array($REL_LANG->_('Aquarius'), "aquarius.gif", "21-01");
+    $GLOBALS['zodiac'] = $zodiac;
 }
 
 /**
@@ -1059,12 +1055,12 @@ function user_session() {
 			$allowed_types_moderator = array('users', 'reports', 'unchecked');
 			$allowed_types = array_merge($allowed_types,$allowed_types_moderator);
 		}
-		$allowed_types=array_merge(array('unread', 'inbox', 'outbox'),array_intersect($allowed_types,explode(',',$CURUSER['notifs'])));
+		$allowed_types=array_merge(array('unread', 'inbox', 'outbox'),array_intersect($allowed_types,$CURUSER['notifs']));
 
-		$secs_system = $REL_CRON['pm_delete_sys_days']*86400; // Количество дней
-		$dt_system = time() - $secs_system; // Сегодня минус количество дней
-		$secs_all = $REL_CRON['pm_delete_user_days']*86400; // Количество дней
-		$dt_all = time() - $secs_all; // Сегодня минус количество дней
+		$secs_system = $REL_CRON['pm_delete_sys_days']*86400;
+		$dt_system = time() - $secs_system;
+		$secs_all = $REL_CRON['pm_delete_user_days']*86400;
+		$dt_all = time() - $secs_all;
 
 		foreach ($allowed_types as $type) {
 			if ($type=='torrents') {
@@ -1263,13 +1259,24 @@ function mksizeint($bytes) {
  * @return string Nice time
  */
 function mkprettytime($seconds, $time = true) {
-	global $CURUSER, $REL_CONFIG;
+	global $CURUSER, $REL_CONFIG, $REL_LANG;
 	$seconds = $seconds+$REL_CONFIG['site_timezone']*3600;
 	$seconds = $seconds-date("Z")+$CURUSER['timezone']*3600;
 	$search = array('January','February','March','April','May','June','July','August','September','October','November','December');
-	$replace = array('января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря');
+	$replace = array($REL_LANG->_('January'),
+	$REL_LANG->_('February'),
+	$REL_LANG->_('March'),
+	$REL_LANG->_('April'),
+	$REL_LANG->_('May'),
+	$REL_LANG->_('June'),
+	$REL_LANG->_('July'),
+	$REL_LANG->_('August'),
+	$REL_LANG->_('September'),
+	$REL_LANG->_('October'),
+	$REL_LANG->_('November'),
+	$REL_LANG->_('December'));
 	if ($time == true)
-	$data = @date("j F Y в H:i:s", $seconds);
+	$data = @date("j F Y {$REL_LANG->_('at')} H:i:s", $seconds);
 	else
 	$data = @date("j F Y", $seconds);
 	if (!$data) $data = 'N/A'; else
@@ -1522,7 +1529,7 @@ function generate_notify_array()
 {
 	global $CURUSER,$REL_LANG,$REL_SEO;
 
-	$allowed_types = explode(',',$CURUSER['notifs']);
+	$allowed_types = $CURUSER['notifs'];
 	$return['total'] = 0;
 	$return['notifs'] = array();
 	if ($allowed_types) {
@@ -1553,7 +1560,7 @@ function generate_ratio_popup_warning($blockmode = false) {
 	if (!$REL_CRON['rating_enabled']) return;
 	if ($_COOKIE['denynotifs'] && !$blockmode) return;
 	if (!$CURUSER['downloaded_rel'] && !$CURUSER['seeding']) {
-		$query = sql_query("SELECT (SELECT SUM(1) FROM peers WHERE seeder=1 AND userid={$CURUSER['id']}) AS seeding, (SELECT SUM(1) FROM snatched LEFT JOIN torrents ON snatched.torrent=torrents.id WHERE snatched.finished=1 AND torrents.free=0 AND NOT FIND_IN_SET(torrents.freefor,userid) AND userid={$CURUSER['id']} AND torrents.owner<>{$CURUSER['id']}) AS downloaded");
+		$query = sql_query("SELECT (SELECT COUNT(1) FROM xbt_files_users WHERE `active`=1 AND `left`=0 AND uid={$CURUSER['id']}) AS seeding, (SELECT COUNT(1) FROM xbt_files_users LEFT JOIN torrents ON xbt_files_users.fid=torrents.id WHERE xbt_files_users.left=0 AND torrents.free=0 AND NOT FIND_IN_SET(torrents.freefor,uid) AND uid={$CURUSER['id']} AND torrents.owner<>{$CURUSER['id']}) AS downloaded");
 
 		list($seeding,$downloaded) = mysql_fetch_array($query);
 		$CURUSER['seeding'] = (int)$seeding;
@@ -1625,7 +1632,7 @@ function logoutcookie() {
 function loggedinorreturn() {
 	global $CURUSER, $REL_SEO;
 	if (!$CURUSER) {
-		safe_redirect($REL_SEO->make_link('login','returnto',urlencode(basename($_SERVER["REQUEST_URI"]))));
+		safe_redirect($REL_SEO->make_link('login','returnto',urlencode(str_replace($REL_CONFIG['defaultbaseurl'], '', $_SERVER["REQUEST_URI"]))));
 		exit();
 	}
 	return;
@@ -1644,8 +1651,10 @@ function deletetorrent($id) {
 	$REL_DB->query("DELETE FROM xbt_files WHERE fid=$id");
 	$REL_DB->query("DELETE FROM xbt_files_users WHERE fid=$id");
 	//$REL_DB->query("DELETE FROM xbt_files WHERE fid=$id");
-	foreach(explode(".","snatched.peers.files.trackers") as $x)
-	sql_query("DELETE FROM $x WHERE torrent = $id");
+	foreach(explode(".","files.trackers") as $x)
+		sql_query("DELETE FROM $x WHERE torrent = $id");
+	foreach(explode(".","xbt_files.xbt_files_users") as $x)
+		sql_query("DELETE FROM $x WHERE fid = $id");
 	@unlink("torrents/$id.torrent");
 	$images = glob(ROOT_PATH.'torrents/images/'.$id.'-*');
 	if ($images) {
@@ -1741,7 +1750,7 @@ function commenttable($rows,$fetch = false, $custom_tpl='commenttable.tpl') {
  * @see cloud()
  */
 function cloud3d() {
-	global $REL_CACHE, $REL_SEO;
+	global $REL_CACHE, $REL_SEO, $REL_LANG;
 	$tags = $REL_CACHE->get('system','cat_tags');
 	if ($tags===false) {
 		$cats = assoc_cats();
@@ -1791,7 +1800,7 @@ function cloud3d() {
 		$cloud_links[] = "<br /><a href=\"".$REL_SEO->make_link('browse','cat',$taginfo['id'])."\" style='font-size:". floor($size) . "px;'>$tag</a><br />";
 		$i++;
 	}
-	$cloud_links[$i-1].="Ваш браузер не поддерживает flash!";
+	$cloud_links[$i-1].=$REL_LANG->_('Your browser does not support flash!');
 	$cloud_html[0] = join("", $cloud_tags);
 	$cloud_html[1] = join("", $cloud_links);
 
@@ -1976,8 +1985,20 @@ function torrenttable($res, $variant = "index") {
  * @return string Nice month
  */
 function mkprettymonth($seconds) {
+    global $REL_LANG;
 	$search = array('January','February','March','April','May','June','July','August','September','October','November','December');
-	$replace = array('янв','фев','марта','апреля','мая','июня','июля','авг','сент','окт','ноя','дек');
+    $replace = array($REL_LANG->_('Jan'),
+    $REL_LANG->_('Feb'),
+    $REL_LANG->_('Mar'),
+    $REL_LANG->_('Apr'),
+    $REL_LANG->_('May'),
+    $REL_LANG->_('Jun'),
+    $REL_LANG->_('Jul'),
+    $REL_LANG->_('Aug'),
+    $REL_LANG->_('Sep'),
+    $REL_LANG->_('Oct'),
+    $REL_LANG->_('Nov'),
+    $REL_LANG->_('Dec'));
 	$data = @date("d F ", $seconds);
 
 	if (!$data) $data = 'N/A'; else
@@ -2122,10 +2143,11 @@ function send_notifs($type,$text = '',$id = 0) {
  */
 function is_i_notified($id,$type) {
 	global $CURUSER,$REL_LANG, $REL_SEO;
-	$res = sql_query("SELECT id FROM notifs WHERE checkid=$id AND userid={$CURUSER['id']} AND type='$type'") or sqlerr(__FILE__,__LINE__);
-	list($cid) = mysql_fetch_array($res);
-	if ($cid) return("<div id=\"notifarea-$id\" style=\"display:inline;\"><a href=\"".$REL_SEO->make_link('notifs','action','deny','id',$cid)."\" onclick=\"return notifyme($cid,$id,'','deny')\">{$REL_LANG->say_by_key('monitor_comments_disable')}</a></div>");
-	else return("<div id=\"notifarea-$id\" style=\"display:inline;\"><a href=\"".$REL_SEO->make_link('notifs','id',$id,'type',$type)."\" onclick=\"return notifyme('',$id,'$type','')\">{$REL_LANG->say_by_key('monitor_comments')}</a></div>");
+	if($CURUSER){$res = sql_query("SELECT id FROM notifs WHERE checkid=$id AND userid={$CURUSER['id']} AND type='$type'") or sqlerr(__FILE__,__LINE__);
+	    list($cid) = mysql_fetch_array($res);
+		if ($cid) return("<div id=\"notifarea-$id\" style=\"display:inline;\"><a href=\"".$REL_SEO->make_link('notifs','action','deny','id',$cid)."\" onclick=\"return notifyme($cid,$id,'','deny')\">{$REL_LANG->say_by_key('monitor_comments_disable')}</a></div>");
+	    else return("<div id=\"notifarea-$id\" style=\"display:inline;\"><a href=\"".$REL_SEO->make_link('notifs','id',$id,'type',$type)."\" onclick=\"return notifyme('',$id,'$type','')\">{$REL_LANG->say_by_key('monitor_comments')}</a></div>");
+	}
 }
 
 /**
@@ -2151,33 +2173,24 @@ function &make_tree($table='categories',$condition='')
 		while (($node = mysql_fetch_assoc($query)))
 		{
 			$node['class'] = explode(',',$node['class']);
-			//if ($node['childs'] === '1') //если есть поле определяющее наличие дочерних веток
-			//    $node['nodes'] = array();  //то добавляем к записи узел (массив дочерних веток) на данном этапе
-			$nodes[$node['id']] =& $node; //заполняем список веток записями из БД
-			$keys[] = $node['id']; //заполняем список ключей(ID)
+			$nodes[$node['id']] =& $node;
+
+			$keys[] = $node['id'];
 			unset($node);
 		}
 		mysql_free_result($query);
 
 		foreach ($keys as $key)
 		{
-			/**
-			 * если нашли главную ветку(или одну из главных), то добавляем
-			 * её в дерево
-			 */
 			if ($nodes[$key]['parent_id'] === '0')
 			$tree[] =& $nodes[$key];
 
-			/**
-			 * else находим родительскую ветку и добавляем текущую
-			 * ветку к дочерним элементам родит.ветки.
-			 */
 			else
 			{
-				if (isset($nodes[ $nodes[$key]['parent_id'] ])) //на всякий случай, вдруг в базе есть потерянные ветки
+				if (isset($nodes[ $nodes[$key]['parent_id'] ]))
 				{
-					if (! isset($nodes[ $nodes[$key]['parent_id'] ]['nodes'])) //если нет поля определяющего наличие дочерних веток
-					$nodes[ $nodes[$key]['parent_id'] ]['nodes'] = array(); //то добавляем к записи узел (массив дочерних веток) на данном этапе
+					if (! isset($nodes[ $nodes[$key]['parent_id'] ]['nodes']))
+					$nodes[ $nodes[$key]['parent_id'] ]['nodes'] = array();
 
 					$nodes[ $nodes[$key]['parent_id'] ]['nodes'][] =& $nodes[$key];
 				}
@@ -2201,7 +2214,7 @@ function &make_tree($table='categories',$condition='')
  */
 function gen_select_area($name, $tree, $selected=0, $selectparents = false, $recurs = false, $level = 0, &$t_content = '') {
 	global $REL_LANG;
-	if (!$recurs) $t_content = "<select class='linkselect'  name=\"$name\"><option value=\"0\">{$REL_LANG->say_by_key('choose')}</option>\n";
+	if (!$recurs) $t_content = "<select class='linkselect'  name=\"$name\" style=\"margin:11px;\"><option value=\"0\">{$REL_LANG->say_by_key('choose')}</option>\n";
 
 	foreach ($tree as $branch) {
 		$add = str_repeat('--',$level).' ';
@@ -2408,38 +2421,107 @@ function get_trailer($descr) {
 	return $online;
 }
 
-/**
- * Tranliterate chars from russan to english
- * @param string $st string to be transliterated
- * @param boolean $replace_spaces replase spaces by "_" ? Default true
- * @return string Transliterated String
- */
+/* Tranliterate chars from russan-ukrainian to english
+* @param string $st string to be transliterated
+* @param boolean $replace_spaces replase spaces by "_" ? Default true
+* @return string Transliterated String
+* updated by animan(http://ua-torrents.net)
+*/
 function translit($st,$replace_spaces = true) {
-	$ar = array("а"=>"a","б"=>"b","в"=>"v","г"=>"g","д"=>"d","е"=>"e","ё" =>"yo","ж"=>"j","з"=>"z","и"=>"i","й"=>"i","к"=>"k","л"=>"l","м"=>"m","н"=>"n","о"=>"o","п"=>"p","р"=>"r","с"=>"s","т"=>"t","у"=>"y","ф"=>"f","х"=>"h","ц"=>"c","ч"=>"ch", "ш"=>"sh","щ"=>"sh","ы"=>"i","э"=>"e","ю"=>"u","я"=>"ya",
-"ь"=>"","ъ"=>"",'%'=>'');
-	$alfavitlover = array('ё','й','ц','у','к','е','н','г', 'ш','щ','з','х','ъ','ф','ы','в', 'а','п','р','о','л','д','ж','э', 'я','ч','с','м','и','т','ь','б','ю');
-	$alfavitupper = array('Ё','Й','Ц','У','К','Е','Н','Г', 'Ш','Щ','З','Х','Ъ','Ф','Ы','В', 'А','П','Р','О','Л','Д','Ж','Э', 'Я','Ч','С','М','И','Т','Ь','Б','Ю');
+    $ar = array("а"=>"a","б"=>"b","в"=>"v","г"=>"g","ґ"=>"g","д"=>"d","е"=>"e","ё" =>"yo","ж"=>"j","з"=>"z","и"=>"u","й"=>"i","к"=>"k","л"=>"l","м"=>"m","н"=>"n","о"=>"o","п"=>"p","р"=>"r","с"=>"s","т"=>"t","у"=>"y","ф"=>"f","х"=>"h","ц"=>"c","ч"=>"ch", "ш"=>"sh","щ"=>"sh","ы"=>"i","і"=>"i","ї"=>"yi","є"=>"ye","э"=>"e","ю"=>"u","я"=>"ya","ь"=>"","ъ"=>"",'%'=>'','/'=>'-','['=>'',']'=>'','{'=>'','}'=>'','('=>'',')'=>'','<'=>'','>'=>'','|'=>'','#'=>'','!'=>'','@'=>'','$'=>'','^'=>'','*'=>'',':'=>'',';'=>'',','=>'','?'=>'',' / '=>'-','/ '=>'-',' /'=>'-','&'=>'-','  '=>'-','’'=>'',"'"=>"",'"'=>'','+'=>'','.'=>'','№'=>'','quot'=>'','«'=>'','»'=>'','`'=>'');
+    $alfavitlover = array('ё','й','ц','у','к','е','н','г', 'ш','щ','з','х','ъ','ф','ы','в', 'а','п','р','о','л','д','ж','э', 'я','ч','с','м','и','т','ь','б','ю','і','є','ґ','ї');
+    $alfavitupper = array('Ё','Й','Ц','У','К','Е','Н','Г', 'Ш','Щ','З','Х','Ъ','Ф','Ы','В', 'А','П','Р','О','Л','Д','Ж','Э', 'Я','Ч','С','М','И','Т','Ь','Б','Ю','І','Є','Ґ','Ї');
 
-	$st = str_replace($alfavitupper,$alfavitlover,strtolower($st));
-	$st = strtr($st,$ar);
+    $st = str_replace($alfavitupper,$alfavitlover,strtolower($st));
+    $st = strtr($st,$ar);
 
-	if ($replace_spaces) $st = str_replace(" ","_",$st);
-	return $st;
+    if ($replace_spaces) $st = str_replace(" ","_",$st);
+    return $st;
 }
 
+
+//Make less redirects
+function check_cache($img, $for='index'){
+    clearstatcache();
+    $ext = substr(($t=strrchr("$img",'.'))!==false?$t:'',1);
+    $id = substr($img, 0, strlen($img)-strlen($ext));
+    $thumb_path = "cache/thumbnail/".$id.$for.".".$ext;
+    //$thumb_path = "/var/www/cache/thumbnail/torrents/images/3520.browse.jpg";
+
+
+    //if(is_file(trim($thumb_path))){
+    if(file_exists("/var/www/".$thumb_path)){
+        //$img = "http://img.ddns.mobi/".$thumb_path;
+        $img = "/".$thumb_path;
+        return $img;
+    } else {
+        //$img = "http://img.ddns.mobi/thumbnail.php?image=$img&for=".$for.$thumb;
+        $img = "thumbnail.php?image=$img&for=".$for.$thumb;
+        return $img;
+        }
+}
+//End less redirects
+
+###
+///////////////////////////////////////////////////
+###
+function torrentmatrix5($res, $variant = "index"){
+global $REL_CACHE;
+
+if (isset($_GET['ajax']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+  $ajax = 1;
+} else $ajax=0;
+
+
+$count = $REL_CACHE->get('block-simrel','count');
+if ($count===false) {
+  $count = get_row_count('torrents'," WHERE visible=1 AND banned=0 AND moderatedby<>0");
+ $REL_CACHE->set('block-simblock','count',$count);
+}
+
+if (!$count) { $content = "<div>РќРµС‚ СЂРµР»РёР·РѕРІ</div>"; } else {
+
+$num = count($res); //resarray
+
+    $content .= ("<div style=\"\" width=\"877px\">");
+    foreach ($res as $row) {  //resarray
+        $content .= ("<div style=\"width:110px;float:left;\">");
+			//release name hack!
+			$kir_name = (strpos($row['name'], ' /')?stristr($row['name'], ' /',true):$row["name"]);
+			//$lat_name = stristr($row['name'], '/ ');
+			$dispname = $kir_name;
+		if(!$kir_name) $dispname .= '<br /><font color="#557777"><b>'.$lat_name.'</b></font>';
+        if ($row['images']) $img = check_cache(trim(array_shift(explode(",",$row['images']))),"browse"); else $img='pic/noimage.gif';
+        $content .= "<div align=\"center\"><a href=\"details.php?id={$row['id']}\"><img class=\"browse\" src=\"$img\" title=\"{$row['name']}\" alt=\"{$row['name']}\"/></a>";
+        $content .= "<p>".(($row['free'])?'<img class="o_line" src="pic/freedownload.gif" alt="Р—РѕР»РѕС‚РѕР№ С‚РѕСЂСЂРµРЅС‚" />&nbsp;':'')."<a href=\"details.php?id={$row['id']}\">$dispname</a></p></div>";
+	$content .= ("</div>");
+	    }
+        $content .= "</div></div>";
+	}
+
+	if (!$ajax)print $content;
+}
+###End torrentmatrix5
+###########################
+
+
+function generate_lang_js() {
+ global $REL_LANG;
+ return "<script type=\"text/javascript\" language=\"javascript\">var REL_LANG_NO_TEXT_SELECTED = '{$REL_LANG->_('No text selected!')}';var REL_LANG_ARE_YOU_SURE = '{$REL_LANG->_('Are you sure?')}';</script>";
+}
 /**
  * Outputs beta warning. Default false.
  * @var boolean
  */
-define ("BETA", true);
+define ("BETA", false);
 /**
  * Beta warning as it is
  * @var string
  */
-define ("BETA_NOTICE", "\n<br />This isn't complete release of source!");
+define ("BETA_NOTICE", "\n");
 /**
  * Kinokpk.com releaser's version
  * @var string
  */
-define("RELVERSION","3.40-xbt ALPHA");
+define("RELVERSION","3.40 experimental alpha with xbt support");
 ?>

@@ -33,7 +33,7 @@ while($ras = mysql_fetch_assoc($res)) {
 	if ($ras["dupl"] <= 1)
 	break;
 	if ($ip <> $ras['ip']) {
-		$ros = sql_query("SELECT id, ratingsum, username, class, email, added, last_access, ip, warned, donor, enabled, confirmed, (SELECT SUM(1) FROM peers WHERE peers.ip = users.ip AND users.id = peers.userid) AS peer_count FROM users WHERE ip='".$ras['ip']."' GROUP BY id ORDER BY id") or sqlerr(__FILE__, __LINE__);
+		$ros = sql_query("SELECT id, ratingsum, username, class, email, added, last_access, ip, warned, donor, enabled, confirmed, (SELECT COUNT(1) FROM xbt_announce_log WHERE xbt_announce_log.ipa = users.ip AND uid = xbt_announce_log.uid) AS peer_count FROM users WHERE ip='".$ras['ip']."' GROUP BY id ORDER BY id") or sqlerr(__FILE__, __LINE__);
 		$num2 = mysql_num_rows($ros);
 		if ($num2 > 1) {
 			$uc++;

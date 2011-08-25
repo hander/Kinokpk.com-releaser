@@ -38,7 +38,7 @@ $res = sql_query("SELECT SUM(1) FROM torrents") or sqlerr(__FILE__, __LINE__);
 $n = mysql_fetch_row($res);
 $n_tor = $n[0];
 
-$res = sql_query("SELECT SUM(1) FROM peers") or sqlerr(__FILE__, __LINE__);
+$res = sql_query("SELECT SUM(1) FROM xbt_files_users") or sqlerr(__FILE__, __LINE__);
 $n = mysql_fetch_row($res);
 $n_peers = $n[0];
 
@@ -54,10 +54,10 @@ $orderby = "n_p DESC, name";
 else
 $orderby = "name";
 
-$query = "SELECT u.id, u.username AS name, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.id) as n_p
-	FROM users as u LEFT JOIN torrents as t ON u.id = t.owner LEFT JOIN peers as p ON t.id = p.torrent WHERE u.class = 3
-	GROUP BY u.id UNION SELECT u.id, u.username AS name, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.id) as n_p
-	FROM users as u LEFT JOIN torrents as t ON u.id = t.owner LEFT JOIN peers as p ON t.id = p.torrent WHERE u.class > 3
+$query = "SELECT u.id, u.username AS name, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.fid) as n_p
+	FROM users as u LEFT JOIN torrents as t ON u.id = t.owner LEFT JOIN xbt_files_users as p ON t.id = p.fid WHERE u.class = 3
+	GROUP BY u.id UNION SELECT u.id, u.username AS name, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.fid) as n_p
+	FROM users as u LEFT JOIN torrents as t ON u.id = t.owner LEFT JOIN xbt_files_users as p ON t.id = p.fid WHERE u.class > 3
 	GROUP BY u.id ORDER BY $orderby";
 
 $res = sql_query($query) or sqlerr(__FILE__, __LINE__);
@@ -101,9 +101,9 @@ else
 	else
 	$orderby = "c.name";
 	$tree = make_tree();
-	$res = sql_query("SELECT c.id as catid, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.id) AS n_p
-	FROM categories as c LEFT JOIN torrents as t ON t.category = c.id LEFT JOIN peers as p
-	ON t.id = p.torrent GROUP BY c.id ORDER BY $orderby") or sqlerr(__FILE__, __LINE__);
+	$res = sql_query("SELECT c.id as catid, MAX(t.added) AS last, COUNT(DISTINCT t.id) AS n_t, COUNT(p.fid) AS n_p
+	FROM categories as c LEFT JOIN torrents as t ON t.category = c.id LEFT JOIN xbt_files_users as p
+	ON t.id = p.fid GROUP BY c.id ORDER BY $orderby") or sqlerr(__FILE__, __LINE__);
 
 	$REL_TPL->begin_frame("Активность категорий", True);
 	print("<table width=\"100%\" border=\"1\">

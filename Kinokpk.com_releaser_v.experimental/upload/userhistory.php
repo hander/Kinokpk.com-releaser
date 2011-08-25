@@ -113,7 +113,7 @@ if (in_array($type,$allowed_types))
 		$cats = assoc_cats ();
 		//xbt fix
 		//$r = sql_query ( "SELECT snatched.torrent AS id, snatched.completedat, torrents.name, torrents.seeders, torrents.leechers, torrents.category FROM snatched LEFT JOIN torrents ON torrents.id = snatched.torrent WHERE snatched.userid = $id AND torrents.owner<>$id GROUP BY id ORDER BY id" ) or sqlerr ( __FILE__, __LINE__ );
-		$r = sql_query("SELECT `fid` AS id,`mtime` AS completedat, torrents.name, torrents.seeders, torrents.leechers, torrents.category FROM xbt_files_users LEFT JOIN torrents ON torrents.id = xbt_files_users.fid WHERE xbt_files_users.uid=1 AND torrents.owner<>1 GROUP BY id ORDER BY id") or sqlerr ( __FILE__, __LINE__ );
+		$r = sql_query("SELECT `fid` AS id,`mtime` AS completedat, torrents.name, torrents.seeders, torrents.leechers, torrents.category FROM xbt_files_users LEFT JOIN torrents ON torrents.id = xbt_files_users.fid WHERE xbt_files_users.uid=$id  AND torrents.owner<>$id  GROUP BY id ORDER BY id") or sqlerr ( __FILE__, __LINE__ );
 		if (mysql_num_rows ( $r )) {
 			$completed = "<table class=\"main\" border=\"1\" cellspacing=\"0\" cellpadding=\"5\">\n" . "<tr><td class=\"colhead\">Тип</td><td class=\"colhead\">Название</td><td class=\"colhead\">Раздающих</td><td class=\"colhead\">Качающих</td><td class=\"colhead\">{$REL_LANG->_('Date')}</td></tr>\n";
 			if ($id==$CURUSER['id']) $completed.= ('<tr><td align="center" colspan="5">'.$REL_LANG->_('You can download all previous releases in one ZIP-archive without rating decrease<br/><a href="%s">View downloaded releases</a> or <a href="%s">Download ZIP-archive with torrents</a>',$REL_SEO->make_link('userhistory','id',$id,'type','downloaded'),$REL_SEO->make_link('download','a','my')).'</td></tr>');

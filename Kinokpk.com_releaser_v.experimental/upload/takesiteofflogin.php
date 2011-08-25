@@ -54,7 +54,7 @@ bark($REL_LANG->say_by_key('incorrect'));
 if (!$row["enabled"])
 bark($REL_LANG->say_by_key('this_acc_disabled'));
 
-$peers = sql_query("SELECT SUM(1) FROM peers WHERE userid = $row[id]");
+$peers = sql_query("SELECT SUM(1) FROM xbt_files_users WHERE uid = $row[id]");
 $num = mysql_fetch_row($peers);
 $ip = getip();
 if ($num[0] > 0 && $row[ip] != $ip && $row[ip])
