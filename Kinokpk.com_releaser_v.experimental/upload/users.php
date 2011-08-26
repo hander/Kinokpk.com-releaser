@@ -107,9 +107,9 @@ elseif (!isset($_GET['act'])) {
 		print("<h1>Пользователи</h1>\n");
 		print("<div class=\"friends_search\">");
 		print("<form method=\"get\" style='margin-bottom: 20px;' action=\"".$REL_SEO->make_link('users')."\">\n");
-		print("<span class='browse_users'>".$REL_LANG->say_by_key('search')."<input type=\"text\" size=\"30\" name=\"search\" value=\"".$search."\"></span> \n");
+		print("<span class='browse_users'>".$REL_LANG->say_by_key('search')."&nbsp;<input type=\"text\" size=\"30\" name=\"search\" value=\"".$search."\"></span> \n");
 		print make_classes_select('class',$class);
-		print("<input type=\"submit\" class=\"button\" style=\"margin-top:5px\" value=\"{$REL_LANG->say_by_key('go')}\">\n");
+		print("<input type=\"submit\" class=\"button\" style=\"margin-top:2px\" value=\"{$REL_LANG->say_by_key('go')}\">\n");
 		print("</form>\n");
 		print("</div>\n");
 	}
@@ -125,7 +125,7 @@ elseif (!isset($_GET['act'])) {
 	$num = mysql_num_rows($res);
 
 	if (!pagercheck()) {
-		print("<div id=\"pager_scrollbox\"><table id=\"userst\"  cellspacing=\"0\" cellpadding=\"5\" border=\"1\" style=\"width: 964px;\">\n");
+		print("<div id=\"pager_scrollbox\"><table id=\"userst\"  cellspacing=\"0\" cellpadding=\"5\" border=\"1\" style=\"width: 100%\">\n");
 		print("<tr><td class=\"colhead\" align=\"left\">Имя</td><td class=\"colhead\">Зарегестрирован</td><td class=\"colhead\">Последний вход</td><td class=\"colhead\">Рейтинг</td><td class=\"colhead\">Пол</td><td class=\"colhead\" align=\"left\">Уровень</td><td class=\"colhead\">Страна</td></tr>\n");
 	}
 	while ($arr = mysql_fetch_assoc($res)) {
