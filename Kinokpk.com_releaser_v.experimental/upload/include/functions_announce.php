@@ -12,6 +12,7 @@
 if(!defined('IN_ANNOUNCE'))
 die('Hacking attempt!');
 require_once(ROOT_PATH . 'include/secrets.php');
+require_once(ROOT_PATH . 'include/bittorrent.php');
 /* @var object general cache object */
 require_once(ROOT_PATH . 'classes/cache/cache.class.php');
 $REL_CACHE=new Cache();
@@ -37,7 +38,7 @@ require_once(ROOT_PATH.'classes/bans/ipcheck.class.php');
  * @param string $line Line where error begins __LINE__
  * @return void
  */
-function sqlerr($file = '', $line = '') {
+function sqlerr1($file = '', $line = '') {
 	$err = mysql_error();
 	$text = ("SQL error, mysql server said: " . $err . ($file != '' && $line != '' ? " file: $file, line: $line" : ""));
 	write_log("Announce/scrape SQL ERROR: $text",'sql_errors');
@@ -51,7 +52,7 @@ function sqlerr($file = '', $line = '') {
  * @param string $type Type of log record, default 'tracker'
  * @return void
  */
-function write_log($text, $type = "tracker") {
+function write_log1($text, $type = "tracker") {
 	$type = sqlesc($type);
 	$text = sqlesc($text);
 	$added = time();
@@ -132,7 +133,7 @@ function portblacklisted($port) {
  * @param string $ip Ip to be validated
  * @return boolean
  */
-function validip($ip) {
+function validip1($ip) {
 	if (!empty($ip) && $ip == long2ip(ip2long($ip)))
 	{
 		$reserved_ips = array (
@@ -161,7 +162,7 @@ function validip($ip) {
  * Gets client ip
  * @return string Ip address
  */
-function getip() {
+function getip1() {
 	if (isset($_SERVER)) {
 		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && validip($_SERVER['HTTP_X_FORWARDED_FOR'])) {
 			$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -187,9 +188,10 @@ function getip() {
  * Sets up a database connection
  * @return void
  */
-function INIT() {
-	global $mysql_host, $mysql_charset, $mysql_user, $mysql_pass, $mysql_db, $REL_CONFIG, $REL_CACHE;
-	if (!@mysql_connect($mysql_host, $mysql_user, $mysql_pass))
+function INIT1() {
+#	global $mysql_host, $mysql_charset, $mysql_user, $mysql_pass, $mysql_db, $REL_CONFIG, $REL_CACHE;
+	global $REL_DB;
+	if (!@mysql_connect($REL_DB['host'], $REL_DB['user'], $REL_DB['pass']))
 	{
 		err('dbconn: mysql_connect: ' . mysql_error());
 	}
@@ -215,7 +217,7 @@ function INIT() {
  * @param string $value Value to be escaped
  * @return string Escaped value
  */
-function sqlesc($value) {
+function sqlesc1($value) {
 	// Quote if not a number or a numeric string
 	if (!is_numeric($value)) {
 		$value = "'" . mysql_real_escape_string($value) . "'";
@@ -228,7 +230,7 @@ function sqlesc($value) {
  * @param string $x Value to be unescaped
  * @return string Unescaped value
  */
-function unesc($x) {
+function unesc1($x) {
 	return $x;
 }
 
@@ -236,7 +238,7 @@ function unesc($x) {
  * Starts gzip comperssion
  * @return void
  */
-function gzip() {
+function gzip1() {
 	if (@extension_loaded('zlib') && @ini_get('zlib.output_compression') != '1' && @ini_get('output_handler') != 'ob_gzhandler') {
 		@ob_start('ob_gzhandler');
 	}
@@ -258,7 +260,7 @@ function checkclient($peer_id){
 	}else{
 		$headers = emu_getallheaders();
 	}
-	if (isset($headers['Cookie']) || isset($headers['Accept-Language']) || isset($headers['Accept-Charset']))err('Вы не можете использовать этот клиент. Возможно вы читер.');
+	 if (isset($headers['Cookie']) || isset($headers['Accept-Language']) || isset($headers['Accept-Charset']))err('Вы не можете использовать этот клиент. Возможно вы читер.');
 
 	//check by agent
 	$banned = array();
