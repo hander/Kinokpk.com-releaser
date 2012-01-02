@@ -68,10 +68,12 @@ class REL_SEO {
 		}
 		ksort($destar);
 		if ($destar) {
-			$dest .= addslashes(implode('',$destar));
+			//$dest .= addslashes(implode('',$destar));
+			$dest .= implode('',$destar);
 		}
-		if ($destar2) {
-			$dest .= '?'.addslashes(implode('&',$destar2));
+		if (isset($destar2)) {
+			//$dest .= '?'.addslashes(implode('&',$destar2));
+			$dest .= '?'.implode("&amp;",$destar2);
 		}
 		return $REL_CONFIG['defaultbaseurl'].'/'.addslashes($dest);
 	}

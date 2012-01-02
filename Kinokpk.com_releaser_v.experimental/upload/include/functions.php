@@ -35,6 +35,7 @@ function ajaxpager($perpage=25,$count,$hrefarray,$el_id,$timeout=500) {
 	var CURR_PAGE = 0;
 	var MAX_PAGE = $maxpage;
 	var PAGER_HREF = \"$href\";
+	PAGER_HREF = PAGER_HREF.replace(/&amp;/g, '&');
 	$('document').ready(function(){
 	$('#pager_scrollbox').after('<div align=\"center\"><input type=\"button\" id=\"pager_button\" value=\"{$REL_LANG->say_by_key('Show more')}\" onclick=\"javascript:do_pager();\"/></div>');
 });
