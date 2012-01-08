@@ -129,7 +129,7 @@ $row = mysql_fetch_row($res);
 		."<tr><td colspan=\"2\" align=\"center\"><input type=\"submit\" value=\"Выполнить действие\"></td></tr></form></table>";
 
 		if ($_POST['type'] == "Optimize") {
-			$result = $REL_DB->query("SHOW TABLE STATUS FROM ".$dbname."");
+			$result = $REL_DB->query("SHOW TABLE STATUS");
 			$tables = array();
 			while ($row = mysql_fetch_array($result)) {
 				$total = $row['Data_length'] + $row['Index_length'];
@@ -147,7 +147,7 @@ $row = mysql_fetch_row($res);
 			."<table border=\"0\" cellpadding=\"3\" cellspacing=\"1\" width=\"100%\"><tr><td class=\"colhead\" align=\"center\">№</td><td class=\"colhead\">Таблица</td><td class=\"colhead\">Размер</td><td class=\"colhead\">Статус</td><td class=\"colhead\">Накладные расходы</td></tr>"
 			."".$content3."</table>";
 		} elseif ($_POST['type'] == "Repair") {
-			$result = $REL_DB->query("SHOW TABLE STATUS FROM ".$dbname."");
+			$result = $REL_DB->query("SHOW TABLE STATUS");
 			while ($row = mysql_fetch_array($result)) {
 				$total = $row['Data_length'] + $row['Index_length'];
 				$totaltotal += $total;
