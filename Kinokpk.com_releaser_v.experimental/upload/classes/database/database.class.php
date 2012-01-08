@@ -2,12 +2,20 @@
 class REL_DB {
 	public $query, $conntection;
 
+
+	/**
+	 * Sets mode to non-gui debug. Query times and errors will be printed directly to page.
+	 */
+	function debug() {
+		$this->debug = true;
+	}
 	function __construct($db) {
+		$this->ttime = 0;
 		$this->connection = @mysql_connect($db['host'], $db['user'], $db['pass']);
 		if (!$this->connection)
-		die("[" . mysql_errno() . "] dbconn: mysql_connect: " . mysql_error());
+		die("Error " . mysql_errno() . " aka " . mysql_error().". Failed to estabilish connection to SQL server");
 		mysql_select_db($db['db'])
-		or die("dbconn: mysql_select_db: " + mysql_error());
+		or die("Cannot select database {$db['db']}: " + mysql_error());
 
 		$this->my_set_charset($db['charset']);
 		$this->query = array();
@@ -36,11 +44,37 @@ class REL_DB {
 		$result = mysql_query($query);
 		$query_end_time = microtime(true); // End time
 		$query_time = ($query_end_time - $query_start_time);
-		//$query_time = substr($query_time, 0, 8);
+		$this->ttime = $this->ttime + $query_time;
+		if (isset($this->debug)) {
+			print "$query<br/>took $query_time, total {$this->ttime}<hr/>";
+
+		}
+		if (mysql_errno()&&mysql_errno()!=1062) {
+
+			$to_log = "ERROR: ".mysql_errno()." - ".mysql_error()."<br/>$query<br/>took $query_time, total {$this->ttime}<br/>Backtrace:<hr/>";
+			$to_log .= "<pre>";
+			$to_log .= var_export(debug_backtrace(),true);
+			$to_log .= "</pre><hr/>";
+			//write_log($to_log,'sql_errors');
+			print $to_log;
+			if (!$this->debug()) die();
+		}
 		$this->query[] = array("seconds" => $query_time, "query" => $query);
 		return $result;
 	}
-
+	/**
+	 * Escapes value to make safe $REL_DB->query
+	 * @param string $value Value to be escaped
+	 * @return string Escaped value
+	 * @see $REL_DB->query()
+	 */
+	function sqlesc($value) {
+		// Quote if not a number or a numeric string
+		if (!is_numeric($value)) {
+			$value = "'" . mysql_real_escape_string((string)$value) . "'";
+		}
+		return $value;
+	}
 	/**
 	 * Preforms a sql query, returning a results
 	 * @param string $query query to be executed
@@ -50,22 +84,22 @@ class REL_DB {
 	function query_return($query,$type='assoc') {
 		$res = $this->query($query);
 		if ($res) {
-		if ($type=='assoc')
-		while ($row = mysql_fetch_assoc($res)) {
-			$return[] = $row;
-		} 
-		elseif ($type=='array')
-		while ($row = mysql_fetch_array($res)) {
-			$return[] = $row;
-		} 
-		elseif ($type=='object')
-		while ($row = mysql_fetch_assoc($res)) {
-			$return[] = $row;
-		}
-		return $return;
+			if ($type=='assoc')
+			while ($row = mysql_fetch_assoc($res)) {
+				$return[] = $row;
+			}
+			elseif ($type=='array')
+			while ($row = mysql_fetch_array($res)) {
+				$return[] = $row;
+			}
+			elseif ($type=='object')
+			while ($row = mysql_fetch_assoc($res)) {
+				$return[] = $row;
+			}
+			return $return;
 		} else return false;
 	}
-	
+
 	/**
 	 * Preforms an sql query, returns first row
 	 * @param string $query query to be executed

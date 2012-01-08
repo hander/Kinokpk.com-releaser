@@ -75,7 +75,7 @@ function timespanFormat($seconds)
 
 function localisedDate($timestamp = -1, $format = '')
 {
-	global $datefmt, $month, $day_of_week;
+	global  $datefmt, $month, $day_of_week, $REL_DB;
 
 	if ($format == '') {
 		$format = $datefmt;
@@ -97,7 +97,7 @@ function localisedDate($timestamp = -1, $format = '')
 $REL_TPL->stdhead("Статистка Mysql");
 echo '<h2>'."\n".'Статус базы данных (MYSQL)'."\n".'</h2><br />'."\n";
 
-$res = @sql_query('SHOW STATUS') or Die(mysql_error());
+$res = @$REL_DB->query('SHOW STATUS') or Die(mysql_error());
 while ($row = mysql_fetch_row($res)) {
 	$serverStatus[$row[0]] = $row[1];
 }
@@ -106,19 +106,16 @@ unset($res);
 unset($row);
 
 // просчет времени
-$res = @sql_query('SELECT UNIX_TIMESTAMP() - ' . $serverStatus['Uptime']);
+$res = @$REL_DB->query('SELECT UNIX_TIMESTAMP() - ' . $serverStatus['Uptime']);
 $row = mysql_fetch_row($res);
 //echo sprintf("Server Status Uptime", timespanFormat($serverStatus['Uptime']), localisedDate($row[0])) . "\n";
 ?>
 
 <table id="torrenttable" border="1">
 	<tr>
-		<td><?
-		print("Mysql работает ". timespanFormat($serverStatus['Uptime']) .". Был запущен ". localisedDate($row[0])) . "\n";
+		<td><?php		print("Mysql работает ". timespanFormat($serverStatus['Uptime']) .". Был запущен ". localisedDate($row[0])) . "\n";
 
-		$dbname = $mysql_db;
-
-		$result = sql_query("SHOW TABLES FROM ".$dbname."");
+		$result = $REL_DB->query("SHOW TABLES");
 		$content = "";
 		while (list($name) = mysql_fetch_array($result)) $content .= "<option value=\"".$name."\" selected>".$name."</option>";
 		echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"3\" align=\"center\">"
@@ -132,7 +129,7 @@ $row = mysql_fetch_row($res);
 		."<tr><td colspan=\"2\" align=\"center\"><input type=\"submit\" value=\"Выполнить действие\"></td></tr></form></table>";
 
 		if ($_POST['type'] == "Optimize") {
-			$result = sql_query("SHOW TABLE STATUS FROM ".$dbname."");
+			$result = $REL_DB->query("SHOW TABLE STATUS FROM ".$dbname."");
 			$tables = array();
 			while ($row = mysql_fetch_array($result)) {
 				$total = $row['Data_length'] + $row['Index_length'];
@@ -141,21 +138,21 @@ $row = mysql_fetch_row($res);
 				$totalfree += $free;
 				$i++;
 				$otitle = (!$free) ? "<font color=\"#FF0000\">Не нуждается</font>" : "<font color=\"#009900\">Оптимизирована</font>";
-				//sql_query("OPTIMIZE TABLE ".$row[0]."");
+				//$REL_DB->query("OPTIMIZE TABLE ".$row[0]."");
 				$tables[] = $row[0];
 				$content3 .= "<tr class=\"bgcolor1\"><td align=\"center\">".$i."</td><td>".$row[0]."</td><td>".mksize($total)."</td><td align=\"center\">".$otitle."</td><td align=\"center\">".mksize($free)."</td></tr>";
 			}
-			sql_query("OPTIMIZE TABLE ".implode(", ", $tables));
+			$REL_DB->query("OPTIMIZE TABLE ".implode(", ", $tables));
 			echo "<center><font class=\"option\">Оптимизация базы данных: ".$dbname."<br />Общий размер базы данных: ".mksize($totaltotal)."<br />Общие накладные расходы: ".mksize($totalfree)."<br /><br />"
 			."<table border=\"0\" cellpadding=\"3\" cellspacing=\"1\" width=\"100%\"><tr><td class=\"colhead\" align=\"center\">№</td><td class=\"colhead\">Таблица</td><td class=\"colhead\">Размер</td><td class=\"colhead\">Статус</td><td class=\"colhead\">Накладные расходы</td></tr>"
 			."".$content3."</table>";
 		} elseif ($_POST['type'] == "Repair") {
-			$result = sql_query("SHOW TABLE STATUS FROM ".$dbname."");
+			$result = $REL_DB->query("SHOW TABLE STATUS FROM ".$dbname."");
 			while ($row = mysql_fetch_array($result)) {
 				$total = $row['Data_length'] + $row['Index_length'];
 				$totaltotal += $total;
 				$i++;
-				$rresult = sql_query("REPAIR TABLE ".$row[0]."");
+				$rresult = $REL_DB->query("REPAIR TABLE ".$row[0]."");
 				$otitle = (!$rresult) ? "<font color=\"#FF0000\">Ошибка</font>" : "<font color=\"#009900\">OK</font>";
 				$content4 .= "<tr class=\"bgcolor1\"><td align=\"center\">".$i."</td><td>".$row[0]."</td><td>".mksize($total)."</td><td align=\"center\">".$otitle."</td></tr>";
 			}
@@ -169,8 +166,7 @@ $row = mysql_fetch_row($res);
 	</tr>
 </table>
 
-		<?
-		mysql_free_result($res);
+		<?php		mysql_free_result($res);
 		unset($res);
 		unset($row);
 		//берем статистику запросов N01heDc=
@@ -198,18 +194,18 @@ $row = mysql_fetch_row($res);
 				</tr>
 				<tr>
 					<td bgcolor="#EFF3FF">&nbsp;Полученно&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo join(' ', formatByteDown($serverStatus['Bytes_received'])); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo join(' ', formatByteDown($serverStatus['Bytes_received'] * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo join(' ', formatByteDown($serverStatus['Bytes_received'])); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo join(' ', formatByteDown($serverStatus['Bytes_received'] * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
 				</tr>
 				<tr>
 					<td bgcolor="#EFF3FF">&nbsp;Послано&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo join(' ', formatByteDown($serverStatus['Bytes_sent'])); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo join(' ', formatByteDown($serverStatus['Bytes_sent'] * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo join(' ', formatByteDown($serverStatus['Bytes_sent'])); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo join(' ', formatByteDown($serverStatus['Bytes_sent'] * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
 				</tr>
 				<tr>
 					<td bgcolor="lightgrey">&nbsp;Всего&nbsp;</td>
-					<td bgcolor="lightgrey" align="right">&nbsp;<? echo join(' ', formatByteDown($serverStatus['Bytes_received'] + $serverStatus['Bytes_sent'])); ?>&nbsp;</td>
-					<td bgcolor="lightgrey" align="right">&nbsp;<? echo join(' ', formatByteDown(($serverStatus['Bytes_received'] + $serverStatus['Bytes_sent']) * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
+					<td bgcolor="lightgrey" align="right">&nbsp;<?php echo join(' ', formatByteDown($serverStatus['Bytes_received'] + $serverStatus['Bytes_sent'])); ?>&nbsp;</td>
+					<td bgcolor="lightgrey" align="right">&nbsp;<?php echo join(' ', formatByteDown(($serverStatus['Bytes_received'] + $serverStatus['Bytes_sent']) * 3600 / $serverStatus['Uptime'])); ?>&nbsp;</td>
 				</tr>
 			</table>
 			</td>
@@ -222,21 +218,21 @@ $row = mysql_fetch_row($res);
 				</tr>
 				<tr>
 					<td bgcolor="#EFF3FF">&nbsp;Проваленные попытки&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format($serverStatus['Aborted_connects'], 0, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($serverStatus['Aborted_connects'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo ($serverStatus['Connections'] > 0 ) ? number_format(($serverStatus['Aborted_connects'] * 100 / $serverStatus['Connections']), 2, '.', ',') . '&nbsp;%' : '---'; ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format($serverStatus['Aborted_connects'], 0, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($serverStatus['Aborted_connects'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo ($serverStatus['Connections'] > 0 ) ? number_format(($serverStatus['Aborted_connects'] * 100 / $serverStatus['Connections']), 2, '.', ',') . '&nbsp;%' : '---'; ?>&nbsp;</td>
 				</tr>
 				<tr>
 					<td bgcolor="#EFF3FF">&nbsp;Отменено клиентами&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format($serverStatus['Aborted_clients'], 0, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($serverStatus['Aborted_clients'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo ($serverStatus['Connections'] > 0 ) ? number_format(($serverStatus['Aborted_clients'] * 100 / $serverStatus['Connections']), 2 , '.', ',') . '&nbsp;%' : '---'; ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format($serverStatus['Aborted_clients'], 0, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($serverStatus['Aborted_clients'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo ($serverStatus['Connections'] > 0 ) ? number_format(($serverStatus['Aborted_clients'] * 100 / $serverStatus['Connections']), 2 , '.', ',') . '&nbsp;%' : '---'; ?>&nbsp;</td>
 				</tr>
 				<tr>
 					<td bgcolor="lightgrey">&nbsp;Всего&nbsp;</td>
-					<td bgcolor="lightgrey" align="right">&nbsp;<? echo number_format($serverStatus['Connections'], 0, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="lightgrey" align="right">&nbsp;<? echo number_format(($serverStatus['Connections'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="lightgrey" align="right">&nbsp;<? echo number_format(100, 2, '.', ','); ?>&nbsp;%&nbsp;</td>
+					<td bgcolor="lightgrey" align="right">&nbsp;<?php echo number_format($serverStatus['Connections'], 0, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="lightgrey" align="right">&nbsp;<?php echo number_format(($serverStatus['Connections'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="lightgrey" align="right">&nbsp;<?php echo number_format(100, 2, '.', ','); ?>&nbsp;%&nbsp;</td>
 				</tr>
 			</table>
 			</td>
@@ -244,7 +240,7 @@ $row = mysql_fetch_row($res);
 	</table>
 	</li>
 	<br />
-	<li><!-- запросы --> <? print("<b>Статистика Запросов: </b> с момента запуска - ". number_format($serverStatus['Questions'], 0, '.', ',')." запросов было посланно на сервер.\n"); ?>
+	<li><!-- запросы --> <?php print("<b>Статистика Запросов: </b> с момента запуска - ". number_format($serverStatus['Questions'], 0, '.', ',')." запросов было посланно на сервер.\n"); ?>
 	<table border="0">
 		<tr>
 			<td colspan="2"><br />
@@ -256,10 +252,10 @@ $row = mysql_fetch_row($res);
 					<th bgcolor="lightgrey">&nbsp;&oslash;&nbsp;За&nbsp;Секунд&nbsp;</th>
 				</tr>
 				<tr>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format($serverStatus['Questions'], 0, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($serverStatus['Questions'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($serverStatus['Questions'] * 60 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($serverStatus['Questions'] / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format($serverStatus['Questions'], 0, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($serverStatus['Questions'] * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($serverStatus['Questions'] * 60 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($serverStatus['Questions'] / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
 				</tr>
 			</table>
 			</td>
@@ -272,8 +268,7 @@ $row = mysql_fetch_row($res);
 					<th bgcolor="lightgrey">&nbsp;&oslash;&nbsp;За&nbsp;Час&nbsp;</th>
 					<th bgcolor="lightgrey">&nbsp;%&nbsp;</th>
 				</tr>
-				<?
-
+				<?php
 				$useBgcolorOne = TRUE;
 				$countRows = 0;
 				foreach ($queryStats as $name => $value) {
@@ -281,13 +276,12 @@ $row = mysql_fetch_row($res);
 
 					?>
 				<tr>
-					<td bgcolor="#EFF3FF">&nbsp;<? echo htmlspecialchars($name); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format($value, 0, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($value * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo number_format(($value * 100 / ($serverStatus['Questions'] - $serverStatus['Connections'])), 2, '.', ','); ?>&nbsp;%&nbsp;</td>
+					<td bgcolor="#EFF3FF">&nbsp;<?php echo htmlspecialchars($name); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format($value, 0, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($value * 3600 / $serverStatus['Uptime']), 2, '.', ','); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo number_format(($value * 100 / ($serverStatus['Questions'] - $serverStatus['Connections'])), 2, '.', ','); ?>&nbsp;%&nbsp;</td>
 				</tr>
-				<?
-				$useBgcolorOne = !$useBgcolorOne;
+				<?php				$useBgcolorOne = !$useBgcolorOne;
 				if (++$countRows == ceil(count($queryStats) / 2)) {
 					$useBgcolorOne = TRUE;
 					?>
@@ -300,8 +294,7 @@ $row = mysql_fetch_row($res);
 					<th bgcolor="lightgrey">&nbsp;&oslash;&nbsp;За&nbsp;Час&nbsp;</th>
 					<th bgcolor="lightgrey">&nbsp;%&nbsp;</th>
 				</tr>
-				<?
-				}
+				<?php				}
 				}
 				unset($countRows);
 				unset($useBgcolorOne);
@@ -311,8 +304,7 @@ $row = mysql_fetch_row($res);
 		</tr>
 	</table>
 	</li>
-	<?
-	//Unset used variables
+	<?php	//Unset used variables
 	unset($serverStatus['Aborted_clients']);
 	unset($serverStatus['Aborted_connects']);
 	unset($serverStatus['Bytes_received']);
@@ -333,13 +325,12 @@ $row = mysql_fetch_row($res);
 					<th bgcolor="lightgrey">&nbsp;Функция&nbsp;</th>
 					<th bgcolor="lightgrey">&nbsp;Значение&nbsp;</th>
 				</tr>
-				<?  $useBgcolorOne = TRUE;   $countRows = 0; foreach($serverStatus AS $name => $value) { ?>
+				<?php  $useBgcolorOne = TRUE;   $countRows = 0; foreach($serverStatus AS $name => $value) { ?>
 				<tr>
-					<td bgcolor="#EFF3FF">&nbsp;<? echo htmlspecialchars(str_replace('_', ' ', $name)); ?>&nbsp;</td>
-					<td bgcolor="#EFF3FF" align="right">&nbsp;<? echo htmlspecialchars($value); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF">&nbsp;<?php echo htmlspecialchars(str_replace('_', ' ', $name)); ?>&nbsp;</td>
+					<td bgcolor="#EFF3FF" align="right">&nbsp;<?php echo htmlspecialchars($value); ?>&nbsp;</td>
 				</tr>
-				<?
-				$useBgcolorOne = !$useBgcolorOne;
+				<?php				$useBgcolorOne = !$useBgcolorOne;
 				if (++$countRows == ceil(count($serverStatus) / 3) || $countRows == ceil(count($serverStatus) * 2 / 3)) {
 					$useBgcolorOne = TRUE;
 					?>
@@ -351,12 +342,12 @@ $row = mysql_fetch_row($res);
 					<th bgcolor="lightgrey">&nbsp;Функция&nbsp;</th>
 					<th bgcolor="lightgrey">&nbsp;Значение&nbsp;</th>
 				</tr>
-				<? } } unset($useBgcolorOne); ?>
+				<?php } } unset($useBgcolorOne); ?>
 			</table>
 			</td>
 		</tr>
 	</table>
 	</li>
-	<? } ?>
+	<?php } ?>
 </ul>
-	<? $REL_TPL->stdfoot(); ?>
+	<?php $REL_TPL->stdfoot(); ?>
