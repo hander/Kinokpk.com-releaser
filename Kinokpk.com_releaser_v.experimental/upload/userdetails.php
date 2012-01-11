@@ -14,33 +14,24 @@ INIT();
 
 loggedinorreturn ();
 
-
-function bark($msg) {
-	global $REL_LANG, $REL_TPL;
-	$REL_TPL->stdhead( $REL_LANG->say_by_key('error') );
-	$REL_TPL->stdmsg ( $REL_LANG->say_by_key('error'), $msg );
-	$REL_TPL->stdfoot();
-	exit ();
-}
-
 $id = ( int ) $_GET ["id"];
 
 if (! is_valid_id ( $id )) $id = $CURUSER['id'];
 
-$r = @sql_query ( "SELECT * FROM users WHERE id=$id" ) or sqlerr ( __FILE__, __LINE__ );
-$user = mysql_fetch_array ( $r ) or bark ( "Нет пользователя с таким ID $id." );
+$r = @$REL_DB->query ( "SELECT * FROM users WHERE id=$id" );
+$user = mysql_fetch_array ( $r ) or $REL_TPL->stderr($REL_LANG->_('Error'),$REL_LANG->_('No user with given ID'));
 if (! $user ["confirmed"])
-stderr ( $REL_LANG->say_by_key('error'), "Этот пользователь еще не подтвердил себя по e-mail, возможно, этот аккаунт вскоре будет удален" );
+$REL_TPL->stderr ( $REL_LANG->say_by_key('error'), $REL_LANG->_('This user does not confirmed himself yet. It may be, that this account will be deleted soon.'));
 
 $user['custom_privileges'] = explode(',',$user['custom_privileges']);
 
 if (!pagercheck()) {
 	$cats = assoc_cats ();
-	$am_i_friend = ($id==$CURUSER['id']?true:@mysql_result(sql_query("SELECT 1 FROM friends WHERE (userid={$CURUSER['id']} AND friendid=$id) OR (friendid={$CURUSER['id']} AND userid=$id) AND confirmed=1"),0));
+	$am_i_friend = ($id==$CURUSER['id']?true:@mysql_result($REL_DB->query("SELECT 1 FROM friends WHERE (userid={$CURUSER['id']} AND friendid=$id) OR (friendid={$CURUSER['id']} AND userid=$id) AND confirmed=1"),0));
 	$disallow_view = ($user['privacy']=='highest'&&!$am_i_friend);
-	if ($disallow_view&&!get_privilege('view_private_user_profiles',false)) stderr($REL_LANG->_("Error"),$REL_LANG->_('This user uses privacy level, you need to <a href="%s">Become friend of %s</a> to view this page',$REL_SEO->make_link('friends','action','add','id',$id),get_user_class_color($user['class'],$user['username'])));
+	if ($disallow_view&&!get_privilege('view_private_user_profiles',false)) $REL_TPL->stderr($REL_LANG->_("Error"),$REL_LANG->_('This user uses privacy level, you need to <a href="%s">Become friend of %s</a> to view this page',$REL_SEO->make_link('friends','action','add','id',$id),get_user_class_color($user['class'],$user['username'])));
 
-	$it = sql_query ( "SELECT u.id, u.username, u.class, i.id AS invitedid, i.username AS invitedname, i.class AS invitedclass FROM users AS u LEFT JOIN users AS i ON i.id = u.invitedby WHERE u.invitedroot = $id OR u.invitedby = $id ORDER BY u.invitedby" );
+	$it = $REL_DB->query ( "SELECT u.id, u.username, u.class, i.id AS invitedid, i.username AS invitedname, i.class AS invitedclass FROM users AS u LEFT JOIN users AS i ON i.id = u.invitedby WHERE u.invitedroot = $id OR u.invitedby = $id ORDER BY u.invitedby" );
 	if (mysql_num_rows ( $it ) >= 1) {
 		while ( $inviter = mysql_fetch_array ( $it ) )
 		$invitetree .= "<a href=\"".$REL_SEO->make_link('userdetails','id',$inviter['id'],'username',translit($inviter ["username"]))."\">" . get_user_class_color ( $inviter ["class"], $inviter ["username"] ) . "</a> приглашен <a href=\"".$REL_SEO->make_link('userdetails','id',$inviter['invitedid'],'username',translit($inviter ["invitedname"]))."\">" . get_user_class_color ( $inviter ["invitedclass"], $inviter ["invitedname"] ) . "</a><br />";
@@ -76,7 +67,7 @@ if (!pagercheck()) {
 	}
 	// social activity
 	$presents = array();
-	$presentres = sql_query("SELECT presents.*, users.username, users.class FROM presents LEFT JOIN users ON presents.presenter=users.id WHERE userid=$id ORDER BY id DESC LIMIT 5");
+	$presentres = $REL_DB->query("SELECT presents.*, users.username, users.class FROM presents LEFT JOIN users ON presents.presenter=users.id WHERE userid=$id ORDER BY id DESC LIMIT 5");
 	while ($prrow = mysql_fetch_assoc($presentres)) {
 		$presents[] = $prrow;
 	}
@@ -85,8 +76,8 @@ if (!pagercheck()) {
 	foreach ($allowed_types as $type) {
 		switch ($type) {
 			case 'friends' : $addition = "(friendid={$id} OR userid={$id}) AND confirmed=1"; break;
-			case 'seeding' : $sql_query[] = "(SELECT COUNT(1) FROM xbt_files_users WHERE active=1 AND `left`=0 AND uid=$id) AS seeding"; $noq=true; break;
-			case 'leeching' : $sql_query[] = "(SELECT COUNT(1) FROM xbt_files_users WHERE active=0 AND `left`<>0 AND uid=$id) AS leeching"; $noq=true; break;
+			case 'seeding' : $sql_query[] = "(SELECT SUM(1) FROM xbt_files_users WHERE active=1 AND 'left'=0 AND uid=$id) AS seeding"; $noq=true; break;
+			case 'leeching' : $sql_query[] = "(SELECT SUM(1) FROM xbt_files_users WHERE active=1 AND'left'<>0 AND uid=$id) AS leeching"; $noq=true; break;
 			case 'downloaded' : $sql_query[] = "(SELECT SUM(1) FROM snatched LEFT JOIN torrents ON snatched.torrent=torrents.id WHERE userid=$id AND torrents.owner<>$id) AS downloaded"; $noq=true; break;
 			case 'uploaded' : $sql_query[] = "(SELECT SUM(1) FROM torrents WHERE owner=$id) AS uploaded"; $noq=true; break;
 			case 'presents' : $sql_query[] = "(SELECT SUM(1) FROM presents WHERE userid=$id) AS presents"; $noq=true; break;
@@ -103,7 +94,7 @@ if (!pagercheck()) {
 	$sql_query = "SELECT ".implode(', ', $sql_query);
 
 	//die($sql_query);
-	$socialsql = sql_query($sql_query);
+	$socialsql = $REL_DB->query($sql_query);
 	$social = mysql_fetch_assoc($socialsql);
 	foreach ($social as $type => $value)
 	{
@@ -118,7 +109,7 @@ if (!pagercheck()) {
 	//  $don = "<img src=pic/starbig.gif>";
 
 
-	$res = sql_query ( "SELECT name, flagpic FROM countries WHERE id = $user[country] LIMIT 1" ) or sqlerr ( __FILE__, __LINE__ );
+	$res = $REL_DB->query ( "SELECT name, flagpic FROM countries WHERE id = $user[country] LIMIT 1" );
 	if (mysql_num_rows ( $res ) == 1) {
 		$arr = mysql_fetch_assoc ( $res );
 		$country = "<img src=\"pic/flag/$arr[flagpic]\" alt=\"$arr[name]\" style=\"margin-left: 8pt\">";
@@ -164,16 +155,16 @@ if (!pagercheck()) {
 	$REL_TPL->stdhead( "Просмотр профиля " . $user ["username"] );
 	$enabled = $user ["enabled"] == 1;
 	if ($disallow_view&&get_privilege('view_private_user_profiles',false)) print "<p>".$REL_LANG->_("You are viewing private profile as administration member")."</p>";
-	print ( '<table width="100%"><tr><td width="" style="vertical-align: top;">' );
+	print ( '<table width="100%"><tr><td width="100%" style="vertical-align: top;">' );
 
 	$REL_TPL->begin_main_frame ();
 
-	print ( "<tr><td align=\"left\">".($user['avatar']&&$CURUSER['avatars']?"<br/><img src=\"{$user['avatar']}\" title=\"{$REL_LANG->_("Avatar of %s",$user['username'])}\"/><br/>":'')."<p><h1 style=\"margin:0px\">$user[username]" . get_user_icons ( $user, true ) . "</h1>" . reportarea ( $id, 'users' ) . "</p>\n" );
+	print ( "<tr><td colspan=\"2\" align=\"center\">".($user['avatar']&&$CURUSER['avatars']?"<br/><img src=\"{$user['avatar']}\" title=\"{$REL_LANG->_("Avatar of %s",$user['username'])}\"/><br/>":'')."<p><h1 style=\"margin:0px\">$user[username]" . get_user_icons ( $user, true ) . "</h1>" . reportarea ( $id, 'users' ) . "</p>\n" );
 
-	if (!$enabled)
+	if (! $enabled)
 	print ( "<p><b>Этот аккаунт отключен</b><br/>Причина: " . $user ['dis_reason'] . "</p>\n" );
 	elseif ($CURUSER ["id"] != $user ["id"]) {
-		$r = sql_query ( "SELECT id FROM friends WHERE (userid=$id AND friendid={$CURUSER['id']}) OR (friendid = $id AND userid={$CURUSER['id']})" ) or sqlerr ( __FILE__, __LINE__ );
+		$r = $REL_DB->query ( "SELECT id FROM friends WHERE (userid=$id AND friendid={$CURUSER['id']}) OR (friendid = $id AND userid={$CURUSER['id']})" );
 		list ( $friend ) = mysql_fetch_array ( $r );
 		if ($friend)
 		print ( "<p>(<a href=\"".$REL_SEO->make_link('friends','action','deny','id',$friend)."\">Убрать из друзей</a>)<br />(<a href=\"".$REL_SEO->make_link('present','id',$id)."\">Подарить подарок</a>)</p>\n" );
@@ -181,9 +172,9 @@ if (!pagercheck()) {
 			print ( "<p>(<a href=\"".$REL_SEO->make_link('friends','action','add','id',$id)."\">Добавить в друзья</a>)</p>\n" );
 		}
 	}
-	print ( "<p>" . ratearea ( $user ['ratingsum'], $user ['id'], 'users', $CURUSER['id'] ) . "$country</p></td>" );
+	print ( "<p>" . ratearea ( $user ['ratingsum'], $user ['id'], 'users', $CURUSER['id'] ) . "$country</p>" );
 
-	print ( '<td width="100%"><div class="sp-wrap"><div class="sp-head folded clickable">'.$REL_LANG->_("Open information").'</div><div class="sp-body"><table width=100% border=1 cellspacing=0 cellpadding=5>
+	print ( '<div class="sp-wrap"><div class="sp-head folded clickable">'.$REL_LANG->_("Open information").'</div><div class="sp-body"><table width=100% border=1 cellspacing=0 cellpadding=5>
 <tr><td class=rowhead width=1%>Зарегистрирован</td><td align=left width=99%>' . $joindate . '</td></tr>
 <tr><td class=rowhead>Последний раз был на трекере</td><td align=left>' . $lastseen . '</td></tr>' );
 
@@ -200,7 +191,7 @@ if (!pagercheck()) {
 	if (get_privilege('add_invites',false))
 	print ( "<tr><td class=\"rowhead\">Приглашений</td><td align=left><a href=\"".$REL_SEO->make_link('invite','id',$id)."\">" . $user ["invites"] . "</a></td></tr>" );
 	if ($user ["invitedby"] != 0) {
-		$inviter = mysql_fetch_assoc ( sql_query ( "SELECT username FROM users WHERE id = " . sqlesc ( $user ["invitedby"] ) ) );
+		$inviter = mysql_fetch_assoc ( $REL_DB->query ( "SELECT username FROM users WHERE id = " . sqlesc ( $user ["invitedby"] ) ) );
 		print ( "<tr><td class=\"rowhead\">Пригласил</td><td align=\"left\"><a href=\"".$REL_SEO->make_link('userdetails','id',$user['invitedby'],'username',translit($inviter['username']))."\">$inviter[username]</a></td></tr>" );
 	}
 	//}
@@ -208,8 +199,7 @@ if (!pagercheck()) {
 		?>
 <tr>
 	<td class=rowhead><b>Связь</b></td>
-	<td align=left><?
-	if ($user ["icq"])
+	<td align=left><?php	if ($user ["icq"])
 	print ( "<img src=\"http://web.icq.com/whitepages/online?icq=" . ( int ) $user [icq] . "&amp;img=5\" alt=\"icq\" border=\"0\" /> " . ( int ) $user [icq] . " <br />\n" );
 	if ($user ["msn"])
 	print ( "<img src=\"pic/contact/msn.gif\" alt=\"msn\" border=\"0\" /> " . makesafe ( $user [msn] ) . "<br />\n" );
@@ -223,8 +213,7 @@ if (!pagercheck()) {
 	print ( "<img src=\"pic/contact/mirc.gif\" alt=\"mirc\" border=\"0\" /> " . makesafe ( $user [mirc] ) . "\n" );
 	?></td>
 </tr>
-	<?
-	}
+	<?php	}
 	if ($user ["website"])
 	print ( "<tr><td class=\"rowhead\">Сайт</td><td align=\"left\">" . makesafe ( $user [website] ) . "</a></td></tr>\n" );
 	print ( "<tr><td class=\"rowhead\">Класс</td><td align=\"left\"><b>" . get_user_class_color ( $user ["class"], get_user_class_name ( $user ["class"] ) ) . ($user ["title"] != "" ? " / <span style=\"color: purple;\">{$user["title"]}</span>" : "") . "</b></td></tr>\n" );
@@ -272,10 +261,10 @@ if (!pagercheck()) {
 	print ( "<tr valign=\"top\"><td colspan=\"2\"><div class=\"sp-wrap\"><div class=\"sp-head folded clickable\">Приглашенные</div><div class=\"sp-body\">$invitetree</div></div></td></tr>\n" );
 
 	if ($user ["info"])
-	print ( "<tr valign=\"top\"><td align=\"center\" colspan=\"2\" class=\"text\" bgcolor=\"#F4F4F0\">" . format_comment ( $user ["info"] ) . "</td></tr>\n" );
+	print ( "<tr valign=\"top\"><td align=\"left\" colspan=\"2\" class=\"text\" bgcolor=\"#334\">" . format_comment ( $user ["info"] ) . "</td></tr>\n" );
 
 	if ($user ["acceptpms"] == "friends") {
-		$r = sql_query ( "SELECT id FROM friends WHERE userid = $user[id] AND friendid = $CURUSER[id]" ) or sqlerr ( __FILE__, __LINE__ );
+		$r = $REL_DB->query ( "SELECT id FROM friends WHERE userid = $user[id] AND friendid = $CURUSER[id]" );
 		$showpmbutton = (mysql_num_rows ( $r ) == 1 ? 1 : 0);
 	} elseif ($CURUSER ["id"] != $user ["id"])
 	$showpmbutton = 1;
@@ -291,7 +280,7 @@ if (!pagercheck()) {
         </form>" : '') . "</td></tr>" );
 
 	print ( "</table></div>\n" );
-	print ( '</td></tr></table>' );
+	print ( '</td><td>' );
 
 	$REL_TPL->begin_frame ();
 
@@ -307,7 +296,7 @@ if (!pagercheck()) {
 		foreach ($presents as $present) {
 			$prtext = strip_tags($present['msg']);
 			if (mb_strlen($prtext>30)) $prtext = substr($prtext,0,30).'...';
-			print '<td align="center"><small>'.$REL_LANG->_($switch_pr[$present['type']]).'</small><br/><a href="'.$REL_SEO->make_link('present','a','viewpresent','id',$present['id']).'"><img style="border:none;" src="pic/presents/'.$present['type'].'_small.png" alt="'.$present['type'].'" titie="'.$REL_LANG->_('Present').'"/></a><br/><small>'.($present['presenter']<>$CURUSER['id']?$REL_LANG->_("From").' <a href="'.$REL_SEO->make_link('userdetails','id',$present['presenter'],'username',$present['username']).'">'.get_user_class_color($present['class'],$present['username']).'</a><br/>':$REL_LANG->_("Yours").'<br/>').$REL_LANG->_("With wish of").': '.($prtext?$prtext:$REL_LANG->_("None")).'</small></td>';
+			print '<td align="center"><small>'.$REL_LANG->_($switch_pr[$present['type']]).'</small><br/><a href="'.$REL_SEO->make_link('present','a','viewpresent','id',$present['id']).'"><img style="border:none;" src="pic/presents/'.$present['type'].'_small.png" titie="'.$REL_LANG->_('Present').'"/></a><br/><small>'.($present['presenter']<>$CURUSER['id']?$REL_LANG->_("From").' <a href="'.$REL_SEO->make_link('userdetails','id',$present['presenter'],'username',$present['username']).'">'.get_user_class_color($present['class'],$present['username']).'</a><br/>':$REL_LANG->_("Yours").'<br/>').$REL_LANG->_("With wish of").': '.($prtext?$prtext:$REL_LANG->_("None")).'</small></td>';
 
 		}
 		print ('</tr>');
@@ -325,14 +314,14 @@ $FORM_TYPE = 'user';
 $REL_TPL->assignByRef('FORM_TYPE',$FORM_TYPE);
 $REL_TPL->display('commenttable_form.tpl');
 
-$subres = sql_query ( "SELECT SUM(1) FROM comments WHERE toid = $id AND type='user'" );
+$subres = $REL_DB->query ( "SELECT SUM(1) FROM comments WHERE toid = $id AND type='user'" );
 $subrow = mysql_fetch_array ( $subres );
 $count = $subrow [0];
 
 if (! $count) {
 
-	print ('<div id="newcomment_placeholder">'. "<table style=\"margin-top: 2px;float:left;\" cellpadding=\"5\" width=\"100%\">" );
-	print ( "<tr><td class=colhead align=\"left\" colspan=\"1\">" );
+	print ('<div id="newcomment_placeholder">'. "<table style=\"margin-top: 2px;\" cellpadding=\"5\" width=\"100%\">" );
+	print ( "<tr><td class=colhead align=\"left\" colspan=\"2\">" );
 	print ( "<div style=\"float: left; width: auto;\" align=\"left\"> :: {$REL_LANG->_("Comments list")}</div>" );
 	print ( "<div align=\"right\"><a href=\"".$REL_SEO->make_link('userdetails','id',$id,'username',translit($user['username']))."#comments\" class=altlink_white>Добавить комментарий</a></div>" );
 	print ( "</td></tr><tr><td align=\"center\">" );
@@ -342,14 +331,15 @@ if (! $count) {
 } else {
 	$limit = ajaxpager(25, $count, array('userdetails','id',$id,'username',translit($user['username'])), 'comments-table > tbody:last');
 	//var_dump($count);
-	$subres = sql_query ( "SELECT c.type, c.id, c.ip, c.ratingsum, c.text, c.user, c.added, c.editedby, c.editedat, u.avatar, u.warned, " . "u.username, u.title, u.info, u.class, u.donor, u.enabled, u.ratingsum AS urating, u.gender, s.time AS last_access, e.username AS editedbyname FROM comments AS c LEFT JOIN users AS u ON c.user = u.id LEFT JOIN users AS e ON c.editedby = e.id  LEFT JOIN sessions AS s ON s.uid=u.id WHERE c.toid = " . "$id AND c.type='user' GROUP BY (c.id) ORDER BY c.id DESC $limit" ) or sqlerr ( __FILE__, __LINE__ );
+	$subres = $REL_DB->query ( "SELECT c.type, c.id, c.ip, c.ratingsum, c.text, c.user, c.added, c.editedby, c.editedat, u.avatar, u.warned, " . "u.username, u.title, u.info, u.class, u.donor, u.enabled, u.ratingsum AS urating, u.gender, s.time AS last_access, e.username AS editedbyname FROM comments AS c LEFT JOIN users AS u ON c.user = u.id LEFT JOIN users AS e ON c.editedby = e.id  LEFT JOIN sessions AS s ON s.uid=u.id WHERE c.toid = " . "$id AND c.type='user' GROUP BY (c.id) ORDER BY c.id DESC $limit" );
 	$allrows = prepare_for_commenttable($subres, $user['username'],$REL_SEO->make_link('userdetails','id',$id,'username',translit($user['username'])));
 	if (!pagercheck()) {
 		print ( "<div id=\"pager_scrollbox\"><table id=\"comments-table\" class=main cellspacing=\"0\" cellPadding=\"5\" width=\"100%\" >" );
 		print ( "<tr><td class=\"colhead\" align=\"center\">" );
-		print ( "<div style=\"float: left; width: auto;\" align=\"left\"> :: Список комментариев1</div>" );
+		print ( "<div style=\"float: left; width: auto;\" align=\"left\"> :: Список комментариев</div>" );
 		print ( "<div align=\"right\"><a href=\"".$REL_SEO->make_link('userdetails','id',$id,'username',translit($user['username']))."#comments\" class=\"altlink_white\">{$REL_LANG->_('Add comment (%s)',$REL_LANG->_('User'))}</a></div>" );
 		print ( "</td></tr>" );
+		
 		print ( "<tr><td>" );
 		commenttable ( $allrows);
 		print ( "</td></tr>" );
@@ -388,9 +378,9 @@ if (get_privilege('edit_users',false) && get_class_priority($user ["class"]) < g
 	print ( "<tr><td class=\"rowhead\">Сбросить день рождения</td><td colspan=\"2\" align=\"left\"><input type=\"radio\" name=\"resetb\" value=\"1\">Да<input type=\"radio\" name=\"resetb\" value=\"0\" checked>Нет</td></tr>\n" );
 	$modcomment = makesafe ( $user ["modcomment"] );
 	$supportfor = makesafe ( $user ["supportfor"] );
-	print ( "<tr><td class=rowhead>Поддержка</td><td colspan='2' align='left'><input type='radio' name='support' value=\"1\"" . ($user ["supportfor"] ? " checked" : "") . ">Да <input type=radio name=support value=\"0\"" . (! $user ["supportfor"] ? " checked" : "") . ">Нет</td></tr>\n" );
-	print ( "<tr><td class=rowhead>Поддержка для:</td><td colspan='2' align='left'><textarea cols='10' rows='6' name='supportfor'>$supportfor</textarea></td></tr>\n" );
-	print ( "<tr><td class=rowhead>История пользователя</td><td colspan=2 align=left><textarea cols='10' rows='6'" . (get_privilege('add_comments_to_user',false) ? " readonly" : " name=modcomment") . ">$modcomment</textarea></td></tr>\n" );
+	print ( "<tr><td class=rowhead>Поддержка</td><td colspan=2 align=left><input type=radio name=support value=\"1\"" . ($user ["supportfor"] ? " checked" : "") . ">Да <input type=radio name=support value=\"0\"" . (! $user ["supportfor"] ? " checked" : "") . ">Нет</td></tr>\n" );
+	print ( "<tr><td class=rowhead>Поддержка для:</td><td colspan=2 align=left><textarea cols=60 rows=6 name=supportfor>$supportfor</textarea></td></tr>\n" );
+	print ( "<tr><td class=rowhead>История пользователя</td><td colspan=2 align=left><textarea cols=60 rows=6" . (get_privilege('add_comments_to_user',false) ? " readonly" : " name=modcomment") . ">$modcomment</textarea></td></tr>\n" );
 	$warned = $user ["warned"] == 1;
 
 	print ( "<tr><td class=\"rowhead\"" . (! $warned ? " rowspan=\"2\"" : "") . ">Предупреждение</td>
@@ -450,27 +440,28 @@ function togglepic(bu, picid, formid)
 		print ( "<tr><td class=\"rowhead\">Удалить</td><td colspan=\"2\" align=\"left\"><input type=\"checkbox\" name=\"deluser\"></td></tr>" );
 		print ( "</td></tr>" );
 		if (get_privilege('edit_user_privileges',false)) {
-		    print ( "<tr><td colspan=\"3\" align=\"center\">{$REL_LANG->_("Edit custom user privileges (these priveleges will be added to default for user class)")}</td></tr>\n" );
-			$priority = get_class_priority();
-			$priority2 = get_class_priority($user['class']);
-			$classes = init_class_array();
-			foreach ($classes as $cid=>$cl)
-			    if ($cl['priority']<=$priority2||$cl['priority']>=$priority||!is_int($cid)) unset($classes[$cid]); else $classes[$cid] = "FIND_IN_SET($cid,classes_allowed)";
-
-			$privs = $REL_DB->query_return("SELECT name,description,classes_allowed FROM privileges WHERE ".implode(' OR ',$classes));
-			if ($privs) {
-			    print ("<tr><td colspan=\"3\"><div class=\"sp-wrap\"><div class=\"sp-head folded clickable\">{$REL_LANG->_("Open information")}</div><div class=\"sp-body\"><table border=\"1\"><tr><td class=\"colhead\">{$REL_LANG->_("Check")}<!-- | {$REL_LANG->_("All")}: <input type=\"checkbox\" name=\"allprivs\" value=\"1\"/>--></td><td class=\"colhead\">{$REL_LANG->_("Description")}</td></tr>");
-			foreach ($privs as $p) {
-			    if (!in_array($user['class'],explode(',',$p['classes_allowed'])))
-			    print "<tr><td><input type=\"checkbox\" name=\"privileges[]\" value=\"{$p['name']}\"".(in_array($p['name'],$user['custom_privileges'])?' checked':'')."></td><td>{$REL_LANG->_($p['description'])}</td></tr>";
-			}
-			print "</table></div></td></tr>";
-			}
+			print ( "<tr><td colspan=\"3\" align=\"center\">{$REL_LANG->_("Edit custom user privileges (these priveleges will be added to default for user class)")}</td></tr>\n" );
+				$priority = get_class_priority();
+				$priority2 = get_class_priority($user['class']);
+				$classes = init_class_array();
+				foreach ($classes as $cid=>$cl) 
+					if ($cl['priority']<=$priority2||$cl['priority']>$priority||!is_int($cid)) unset($classes[$cid]); else $classes[$cid] = "FIND_IN_SET($cid,classes_allowed)";
+					
+				$privs = $REL_DB->query_return("SELECT name,description,classes_allowed FROM privileges WHERE ".implode(' OR ',$classes));
+				if ($privs) {
+					print ("<tr><td colspan=\"3\"><div class=\"sp-wrap\"><div class=\"sp-head folded clickable\">{$REL_LANG->_("Open information")}</div><div class=\"sp-body\"><table border=\"1\"><tr><td class=\"colhead\">{$REL_LANG->_("Check")}<!-- | {$REL_LANG->_("All")}: <input type=\"checkbox\" name=\"allprivs\" value=\"1\"/>--></td><td class=\"colhead\">{$REL_LANG->_("Description")}</td></tr>");
+				foreach ($privs as $p) {
+					if (!in_array($user['class'],explode(',',$p['classes_allowed'])))
+					print "<tr><td><input type=\"checkbox\" name=\"privileges[]\" value=\"{$p['name']}\"".(in_array($p['name'],$user['custom_privileges'])?' checked':'')."></td><td>{$REL_LANG->_($p['description'])}</td></tr>";
+				}
+				print "</table></div></td></tr>";
+				}
 		print ( "<tr><td colspan=\"3\" align=\"center\"><input type=\"submit\" class=\"btn\" value=\"ОК\"></td></tr>\n" );
 		print ( "</table>\n" );
 		print ( "<input type=\"hidden\" id=\"ratingchange\" name=\"ratingchange\" value=\"plus\"><input type=\"hidden\" id=\"discountchange\" name=\"discountchange\" value=\"plus\"><input type=\"hidden\" id=\"upchange\" name=\"upchange\" value=\"plus\"><input type=\"hidden\" id=\"downchange\" name=\"downchange\" value=\"plus\">\n" );
 		print ( "</form>\n" );
 		$REL_TPL->end_frame ();
+				//$privs = 
 }
 }
 
