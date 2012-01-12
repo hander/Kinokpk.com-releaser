@@ -159,7 +159,7 @@ if (!pagercheck()) {
 
 	$REL_TPL->begin_main_frame ();
 
-	print ( "<tr><td colspan=\"2\" align=\"center\">".($user['avatar']&&$CURUSER['avatars']?"<br/><img src=\"{$user['avatar']}\" title=\"{$REL_LANG->_("Avatar of %s",$user['username'])}\"/><br/>":'')."<p><h1 style=\"margin:0px\">$user[username]" . get_user_icons ( $user, true ) . "</h1>" . reportarea ( $id, 'users' ) . "</p>\n" );
+	print ( "<tr><td align=\"left\">".($user['avatar']&&$CURUSER['avatars']?"<br/><img src=\"{$user['avatar']}\" title=\"{$REL_LANG->_("Avatar of %s",$user['username'])}\"/><br/>":'')."<p><h1 style=\"margin:0px\">$user[username]" . get_user_icons ( $user, true ) . "</h1>" . reportarea ( $id, 'users' ) . "</p>\n" );
 
 	if (! $enabled)
 	print ( "<p><b>Этот аккаунт отключен</b><br/>Причина: " . $user ['dis_reason'] . "</p>\n" );
@@ -174,7 +174,7 @@ if (!pagercheck()) {
 	}
 	print ( "<p>" . ratearea ( $user ['ratingsum'], $user ['id'], 'users', $CURUSER['id'] ) . "$country</p>" );
 
-	print ( '<div class="sp-wrap"><div class="sp-head folded clickable">'.$REL_LANG->_("Open information").'</div><div class="sp-body"><table width=100% border=1 cellspacing=0 cellpadding=5>
+	print ( '</td><td width="50%"><div class="sp-wrap"><div class="sp-head folded clickable">'.$REL_LANG->_("Open information").'</div><div class="sp-body"><table width=100% border=1 cellspacing=0 cellpadding=5>
 <tr><td class=rowhead width=1%>Зарегистрирован</td><td align=left width=99%>' . $joindate . '</td></tr>
 <tr><td class=rowhead>Последний раз был на трекере</td><td align=left>' . $lastseen . '</td></tr>' );
 
@@ -280,7 +280,7 @@ if (!pagercheck()) {
         </form>" : '') . "</td></tr>" );
 
 	print ( "</table></div>\n" );
-	print ( '</td><td>' );
+	print ( '</td><td></td></tr><tr><td colspan="2">' );
 
 	$REL_TPL->begin_frame ();
 
@@ -320,7 +320,7 @@ $count = $subrow [0];
 
 if (! $count) {
 
-	print ('<div id="newcomment_placeholder">'. "<table style=\"margin-top: 2px;\" cellpadding=\"5\" width=\"100%\">" );
+	print ('</tr><tr><div id="newcomment_placeholder">'. "<table style=\"margin-top: 2px;\" cellpadding=\"5\" width=\"100%\">" );
 	print ( "<tr><td class=colhead align=\"left\" colspan=\"2\">" );
 	print ( "<div style=\"float: left; width: auto;\" align=\"left\"> :: {$REL_LANG->_("Comments list")}</div>" );
 	print ( "<div align=\"right\"><a href=\"".$REL_SEO->make_link('userdetails','id',$id,'username',translit($user['username']))."#comments\" class=altlink_white>Добавить комментарий</a></div>" );
